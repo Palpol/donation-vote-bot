@@ -1,0 +1,12 @@
+{
+  "name": "donation-vote-bot",
+  "description": "Donation Vote Bot for the Steem blockchain, commissioned by kedjom-keku",
+  "repository": "https://github.com/steem-fossbot/donation-vote-bot",
+  "keywords": ["node", "steem", "bot", "blockchain", "voter"],
+  "addons": ["mongolab", "scheduler:standard"],
+  "env": {
+    "STEEM_USER": "",
+    "POSTING_KEY_PRV": "",
+    "START_TIME_AS_EPOCH": ""
+  }
+}
