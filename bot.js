@@ -30,7 +30,7 @@ function main() {
   console.log("donation-vote-bot waking up");
   steem.api.setWebSocket('wss://steemd.steemit.com');
   getLastTimeAsEpoch(function (lastTransactionTimeAsEpoch) {
-    steem.api.getAccountHistory(process.env.STEEM_USER, null, 10, function(err, result) {
+    steem.api.getAccountHistory(process.env.STEEM_USER, 0, 10, function(err, result) {
       console.log("*** ACCOUNT HISTORY");
       console.log(err, result);
       steem.api.getOwnerHistory(account, function(err, result) {
