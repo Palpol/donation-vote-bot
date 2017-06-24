@@ -35,6 +35,16 @@ function main() {
       console.log(err, result);
       if (result !== undefined && result !== null && result.length > 0) {
         for (var r in result) {
+          steem.api.getTransactionHex(r.trx_id, function(err, result) {
+            //console.log(err, result);
+            if (err) {
+              console.log("error getting transaction "+r.trx_id);
+            } else {
+              console.log("transaction hex: "+r.trx_id);
+              console.log(result);
+            }
+          });
+          /*
           steem.api.getTransaction(r.trx_id, function(err, result) {
             if (err) {
               console.log("error getting transaction "+r.trx_id);
@@ -43,6 +53,7 @@ function main() {
               console.log(result);
             }
           });
+          */
         }
       }
     });
