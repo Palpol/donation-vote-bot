@@ -66,6 +66,9 @@ function getLastTimeAsEpoch(callback) {
         if (lastTransactionTimeAsEpoch < data[0].timeAsEpoch) {
           lastTransactionTimeAsEpoch = data[0].timeAsEpoch;
         }
+      } catch(err) {
+        console.log(err);
+        console.log("not fatal, continuing");
       }
     }
     callback(lastTransactionTimeAsEpoch);
