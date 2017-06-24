@@ -33,18 +33,18 @@ function main() {
     steem.api.getAccountHistory(process.env.STEEM_USER, 10, 10, function(err, result) {
       console.log("*** ACCOUNT HISTORY");
       console.log(err, result);
-      steem.api.getOwnerHistory(process.env.STEEM_USER, function(err, result) {
-        console.log("*** OWNER HISTORY");
-        console.log(err, result);
-        steem.api.getConversionRequests(process.env.STEEM_USER, function(err, result) {
-          console.log("*** CONVERSION REQUESTS");
-          console.log(err, result);
-          steem.api.getOrderBook(10, function(err, result) {
-            console.log("*** ORDER BOOK");
-            console.log(err, result);
+      if (result !== undefined && result !== null && result.length > 0) {
+        for (var r in result) {
+          steem.api.getTransaction(r.trx_id, function(err, result) {
+            if (err) {
+              console.log("error getting transaction "+r.trx_id);
+            } else {
+              console.log("transaction: "+r.trx_id);
+              console.log(result);
+            }
           });
-        });
-      });
+        }
+      }
     });
   });
 }
