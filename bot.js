@@ -50,6 +50,12 @@ function main() {
   });
 }
 
+function getAccountHistoryWrapper(start, limit, callback) {
+  steem.api.getAccountHistory(process.env.STEEM_USER, start, limit, function (err, result) {
+    callback(err, result);
+  });
+}
+
 function readTransfers(lastTransactionTimeAsEpoch,
                           lastTransactionNumber,
                           callback) {
@@ -58,9 +64,8 @@ function readTransfers(lastTransactionTimeAsEpoch,
     var keepProcessing = true;
     var idx = 0;
     while(keepProcessing) {
-      var result = wait.for(steem.api.getAccountHistory,
-        process.env.STEEM_USER, idx + RECORDS_FETCH_LIMIT,
-        RECORDS_FETCH_LIMIT);
+      var result = wait.for(getAccountHistoryWrapper,
+        idx + RECORDS_FETCH_LIMIT, RECORDS_FETCH_LIMIT);
       if (result === undefined || result === null
           || result.length < 1) {
         console.log("fatal error, cannot get account history" +
