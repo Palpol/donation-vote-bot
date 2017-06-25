@@ -50,8 +50,14 @@ function main() {
   });
 }
 
-function getAccountHistoryWrapper(start, limit, callback) {
+function steem_getAccountHistory_wrapper(start, limit, callback) {
   steem.api.getAccountHistory(process.env.STEEM_USER, start, limit, function (err, result) {
+    callback(err, result);
+  });
+}
+
+function steem_getContent_wrapper(author, permlink, callback) {
+  steem.api.getContent(author, permlink, function (err, result) {
     callback(err, result);
   });
 }
@@ -65,7 +71,7 @@ function readTransfers(lastTransactionTimeAsEpoch,
     var idx = 0;
     var transactionCounter = 0;
     while(keepProcessing) {
-      var result = wait.for(getAccountHistoryWrapper,
+      var result = wait.for(steem_getAccountHistory_wrapper,
         idx + RECORDS_FETCH_LIMIT, RECORDS_FETCH_LIMIT);
       if (result === undefined || result === null
           || result.length < 1) {
@@ -119,7 +125,7 @@ function readTransfers(lastTransactionTimeAsEpoch,
                           }
                           if (author !== null) {
                             // check exists by fetching from Steem API
-                            var content = wait.for(steem.api.getContent, author, permlink);
+                            var content = wait.for(steem_getContent_wrapper, author, permlink);
                             if (content == undefined || content === null) {
                               console.log("Transfer memo does not" +
                                 " contain valid post URL" +
