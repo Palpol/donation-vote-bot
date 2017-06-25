@@ -74,7 +74,7 @@ function readTransfers(lastTransactionTimeAsEpoch,
         keepProcessing = false;
         break;
       } else {
-        console.log(JSON.stringify(result));
+        //console.log(JSON.stringify(result));
         for (var j = 0 ; j < result.length ; j++) {
           var r = result[j];
           if (r !== undefined && r !== null && r.length > 1) {
