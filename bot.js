@@ -79,10 +79,11 @@ function readTransfers(lastTransactionTimeAsEpoch,
           var r = result[j];
           if (r !== undefined && r !== null && r.length > 1) {
             var transaction = r[1];
+            var ops = transaction.op;
             if (ops === undefined || ops === null || ops.length < 2) {
               console.log("processTransactionOp_recursive failed, back ops: "+JSON.stringify(ops));
             } else {
-              for (var i = 0 ; i < transaction.op.length ; i += 2) {
+              for (var i = 0 ; i < ops.length ; i += 2) {
                 var opName = ops[i];
                 //console.log(" - op: "+opName);
                 if (opName.localeCompare("transfer") == 0) {
