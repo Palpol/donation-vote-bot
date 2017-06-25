@@ -84,18 +84,19 @@ function voteOnPosts(transfers, callback) {
       var transfer = transfers[i];
       console.log(" - transfer "+i+": "+JSON.stringify(transfer));
       // calc nearest whole number STEEM amount
-      var amountFloor = Math.floor(transfer.number_amount);
-      if (amountFloor > probTable[0].length) {
-        amountFloor = probTable.length;
+      var idx = Math.floor(transfer.number_amount) - 1;
+      if (idx > (probTable[0].length - 1)) {
+        idx = (probTable.length - 1);
       }
-      console.log(" - - amountFloor: "+amountFloor);
+      console.log(" - - index (floored amount - 1, max table row len):" +
+        " "+idx);
       // calculate power
       var rnd = Math.random();
       console.log(" - - rnd: "+rnd);
       var cumulativeProb = 0;
       var probPowerFactor = -1; //bad value to fail if not set
-      for (var j = 0 ; j < probTable[amountFloor].length ; j++) {
-        cumulativeProb += probTable[amountFloor][j];
+      for (var j = 0 ; j < probTable[idx].length ; j++) {
+        cumulativeProb += probTable[idx][j];
         if (rnd < cumulativeProb) {
           console.log(" - - - hit table at position "+j);
           // MATCH
