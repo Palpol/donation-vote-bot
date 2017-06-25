@@ -33,7 +33,7 @@ mongodb.MongoClient.connect(process.env.MONGODB_URI, function (err, database) {
 
 function main() {
   console.log("donation-vote-bot waking up");
-  steem.api.setWebSocket('wss://steemd.steemit.com');
+  steem.config.set('websocket','wss://steemd.steemit.com');
   getLastInfos(function (lastTransactionTimeAsEpoch, lastTransactionNumber) {
     readTransfers(lastTransactionTimeAsEpoch, lastTransactionTimeAsEpoch,
         function (transactions) {
