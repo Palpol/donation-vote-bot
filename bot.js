@@ -71,7 +71,7 @@ function voteOnPosts(transfers, callback) {
     // TODO : make sure this takes delegated SP into account also
     console.log("Bot SP is "+steemPower);
     // determine which voting power probability table to use
-    var probTable = votePowerProb_levelSp[0]; //default to first table
+    var probTable = votePowerProb_levelTables[0]; //default to first table
     for (var i = 0 ; i < votePowerProb_levelSp.length ; i++) {
       if (steemPower >= votePowerProb_levelSp[i]) {
         probTable = votePowerProb_levelTables[i];
