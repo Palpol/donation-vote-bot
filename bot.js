@@ -36,6 +36,16 @@ function main() {
         console.log("error!");
       } else {
         console.log(JSON.stringify(result));
+        console.log(" - entry");
+        for (var r in result) {
+          if (r !== undefined && r !== null && r.length > 1) {
+            var transaction = r[1];
+            console.log(" - - transaction");
+            for (var i = 0 ; i < transaction.op.length ; i += 2) {
+              console.log(" - - - "+transaction.op[i]);
+            }
+          }
+        }
       }
       /*
       if (result !== undefined && result !== null && result.length > 0) {
