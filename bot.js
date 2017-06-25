@@ -63,6 +63,7 @@ function readTransfers(lastTransactionTimeAsEpoch,
     var transfers = [];
     var keepProcessing = true;
     var idx = 0;
+    var transactionCounter = 0;
     while(keepProcessing) {
       var result = wait.for(getAccountHistoryWrapper,
         idx + RECORDS_FETCH_LIMIT, RECORDS_FETCH_LIMIT);
@@ -74,9 +75,18 @@ function readTransfers(lastTransactionTimeAsEpoch,
         keepProcessing = false;
         break;
       } else {
-        //console.log(JSON.stringify(result));
+        console.log(JSON.stringify(result));
         for (var j = 0 ; j < result.length ; j++) {
           var r = result[j];
+          if (r[0] < transactionCounter) {
+            // this means the API returned older results than we asked
+            // for, meaning there are no more recent transactions to get
+            console.log("API has no more results, ending fetch");
+            callback(transfers);
+            keepProcessing = false;
+            break;
+          }
+          transactionCounter = r[0];
           if (r !== undefined && r !== null && r.length > 1) {
             var transaction = r[1];
             var ops = transaction.op;
@@ -139,6 +149,12 @@ function readTransfers(lastTransactionTimeAsEpoch,
               }
             }
             idx += RECORDS_FETCH_LIMIT;
+          } else {
+            console.log("fatal error, cannot get account history" +
+              " (transfers), may be finished normally, run out of data");
+            callback(transfers);
+            keepProcessing = false;
+            break;
           }
         }
       }
