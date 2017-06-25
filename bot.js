@@ -90,44 +90,50 @@ function readTransfers(lastTransactionTimeAsEpoch,
                   var opDetail = ops[i+1];
                   // verifyTransferIsValid
                   console.log(" - - - - detail: "+JSON.stringify(opDetail));
-                  // CHECK 1: only consider STEEM transfers, not SBD
-                  if (opDetail.asset.localeCompare("STEEM") == 0) {
-                    console.log(" - - - - MATCH, is for STEEM");
-                    if (opDetail.amount >= 1.0) {
-                      console.log(" - - - - MATCH, amount >= 1.0");
-                      var parts = opDetail.memo.split("/");
-                      if (parts.length > 0) {
-                        var permlink = parts[parts.length - 1];
-                        for (var i = 0 ; i < parts.length ; i++) {
-                          if (S(parts[i]).startsWith("@")) {
-                            var author = parts[i].substr(1, parts[i].length);
-                            // check exists by fetching from Steem API
-                            var content = wait.for(steem.api.getContent, author, permlink);
-                            if (content == undefined || content === null) {
-                              console.log("Transfer memo does not" +
-                                " contain valid post URL" +
-                                " (failed at fetch author/permlink content from API): "
-                                + opDetail.memo);
+                  var amountParts = opDetail.amount.split(" ");
+                  if (amountParts === 2) {
+                    var amount = Number(amountParts[0]);
+                    var asset = amountParts[1];
+                    if (asset.localeCompare("STEEM") == 0) {
+                      console.log(" - - - - MATCH, is for STEEM");
+                      if (amount >= 1.0) {
+                        console.log(" - - - - MATCH, amount >= 1.0");
+                        var parts = opDetail.memo.split("/");
+                        if (parts.length > 0) {
+                          var permlink = parts[parts.length - 1];
+                          for (var i = 0; i < parts.length; i++) {
+                            if (S(parts[i]).startsWith("@")) {
+                              var author = parts[i].substr(1, parts[i].length);
+                              // check exists by fetching from Steem API
+                              var content = wait.for(steem.api.getContent, author, permlink);
+                              if (content == undefined || content === null) {
+                                console.log("Transfer memo does not" +
+                                  " contain valid post URL" +
+                                  " (failed at fetch author/permlink content from API): "
+                                  + opDetail.memo);
+                              } else {
+                                // TODO : something with content
+                                console.log("DEBUG get post content: " + JSON.stringify(result));
+                                // TODO : if passes, add to transfers
+                                transfers.push(opDetail);
+                              }
                             } else {
-                              // TODO : something with content
-                              console.log("DEBUG get post content: "+JSON.stringify(result));
-                              // TODO : if passes, add to transfers
-                              transfers.push(opDetail);
+                              console.log("Transfer memo does not contain valid post URL (failed" +
+                                " to find user name at @ symbol): " + opDetail.memo);
                             }
-                          } else {
-                            console.log("Transfer memo does not contain valid post URL (failed" +
-                              " to find user name at @ symbol): "+opDetail.memo);
                           }
+                        } else {
+                          console.log("Transfer memo does not contain valid post URL (failed" +
+                            " at URL split by /): " + opDetail.memo);
                         }
                       } else {
-                        console.log("Transfer memo does not contain valid post URL (failed" +
-                          " at URL split by /): "+opDetail.memo);
+                        console.log("Transfer amount < 1.0 STEEM");
                       }
                     } else {
-                      console.log("Transfer amount < 1.0 STEEM");
+                      console.log("Transfer is not for STEEM");
                     }
                   } else {
-                    console.log("Transfer is not for STEEM");
+                    console.log("Transfer amount field is invalid");
                   }
                 }
               }
