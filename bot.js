@@ -10,6 +10,9 @@ const
 const
   DB_RECORDS = "records";
 
+const
+  RECORDS_FETCH_LIMIT = 100;
+
 var ObjectID = mongodb.ObjectID;
 var db;
 
@@ -31,39 +34,95 @@ function main() {
   console.log("donation-vote-bot waking up");
   steem.api.setWebSocket('wss://steemd.steemit.com');
   getLastInfos(function (lastTransactionTimeAsEpoch, lastTransactionNumber) {
-    steem.api.getAccountHistory(process.env.STEEM_USER, 10, 10, function(err, result) {
-      if (err) {
-        console.log("fatal error, cannot get account history" +
-          " (transactions)");
-      } else {
-        console.log(JSON.stringify(result));
-        for (var j = 0 ; j < result.length ; j++) {
-          var r = result[j];
-          console.log(" - entry");
-          if (r !== undefined && r !== null && r.length > 1) {
-            var transaction = r[1];
-            //console.log(" - - transaction: "+JSON.stringify(transaction));
-            console.log(" - - transaction");
-            for (var i = 0 ; i < transaction.op.length ; i += 2) {
-              var opName = transaction.op[i];
-              console.log(" - - - "+opName);
-              if (opName.localeCompare("transaction") == 0) {
-                var opDetail = transaction.op[i+1];
-                verifyTransferIsValid(opDetail, function (err) {
-                  if (err) {
-                    console.log("verifyTransferIsValid failed: "+err);
-                  } else {
-                    console.log("verifyTransferIsValid pass!");
-                  }
-                });
-              }
-            }
+    readTransactions_recursive(lastTransactionTimeAsEpoch,
+        lastTransactionTimeAsEpoch, 0, [],
+        function (err, transactions) {
+          if (err || transactions === undefined
+            || transactions === null) {
+            console.log("Error getting transactions");
+            console.log(err, transactions);
+          } else {
+            console.log("Got "+transactions.length+" transactions");
+            console.log(JSON.stringify(transactions));
           }
-        }
-      }
-    });
+        });
   });
 }
+
+function readTransactions_recursive(lastTransactionTimeAsEpoch,
+                                    lastTransactionNumber,
+                                    idx,
+                                    transactions,
+                                    callback) {
+  steem.api.getAccountHistory(process.env.STEEM_USER, idx + RECORDS_FETCH_LIMIT,
+        RECORDS_FETCH_LIMIT, function(err, result) {
+    if (err || result === undefined || result === null
+        || result.length < 1) {
+      console.log("fatal error, cannot get account history" +
+        " (transactions)");
+      callback("fatal error, cannot get account history" +
+        " (transactions)", transactions);
+    } else {
+      console.log(JSON.stringify(result));
+      for (var j = 0 ; j < result.length ; j++) {
+        var r = result[j];
+        console.log(" - entry");
+        if (r !== undefined && r !== null && r.length > 1) {
+          var transaction = r[1];
+          //console.log(" - - transaction: "+JSON.stringify(transaction));
+          console.log(" - - transaction");
+          processTransactionOp_recursive(transaction.op, 0, [], function (_transactions) {
+            if (_transactions !== undefined
+                && _transactions !== null
+                && _transactions.length > 0) {
+              for (var trx in _transactions) {
+                transactions.push(trx);
+              }
+            }
+            // do recursion
+            idx += RECORDS_FETCH_LIMIT;
+            readTransactions_recursive(lastTransactionTimeAsEpoch,
+                lastTransactionNumber, idx, transactions, callback);
+          });
+        }
+      }
+    }
+  });
+}
+
+function processTransactionOp_recursive(ops, idx, transactions, callback) {
+  if (ops === undefined || ops === null || ops.length < 2) {
+    console.log("processTransactionOp_recursive failed, back ops: "+JSON.stringify(ops));
+    callback(transactions);
+  }
+  var opName = ops[idx];
+  console.log(" - - - "+opName);
+  if (opName.localeCompare("transaction") == 0) {
+    var opDetail = ops[idx+1];
+    verifyTransferIsValid(opDetail, function (err) {
+      if (err) {
+        console.log("verifyTransferIsValid failed: "+err);
+      } else {
+        console.log("verifyTransferIsValid pass! Adding to list");
+        transactions.push(opDetail);
+      }
+      idx += 2;
+      if (idx >= ops.length) {
+        callback(transactions);
+      } else {
+        processTransactionOp_recursive(ops, idx, transactions, callback);
+      }
+    });
+  } else {
+    idx += 2;
+    if (idx >= ops.length) {
+      callback(transactions);
+    } else {
+      processTransactionOp_recursive(ops, idx, transactions, callback);
+    }
+  }
+}
+
 
 function verifyTransferIsValid(opDetail, callback) {
   console.log(" - - - - detail: "+JSON.stringify(opDetail));
