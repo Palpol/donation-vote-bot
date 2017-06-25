@@ -76,13 +76,16 @@ function readTransfers(lastTransactionTimeAsEpoch,
         break;
       } else {
         console.log(JSON.stringify(result));
-        var foundNewTransaction = false;
         for (var j = 0 ; j < result.length ; j++) {
           var r = result[j];
           if (r[0] < transactionCounter) {
-            continue;
+            // this means the API returned older results than we asked
+            // for, meaning there are no more recent transactions to get
+            console.log("API has no more results, ending fetch");
+            callback(transfers);
+            keepProcessing = false;
+            break;
           }
-          foundNewTransaction = true;
           transactionCounter = r[0];
           if (r !== undefined && r !== null && r.length > 1) {
             var transaction = r[1];
@@ -153,14 +156,6 @@ function readTransfers(lastTransactionTimeAsEpoch,
             keepProcessing = false;
             break;
           }
-        }
-        if (!foundNewTransaction) {
-          // this means the API returned older results than we asked
-          // for, meaning there are no more recent transactions to get
-          console.log("API has no more results, ending fetch");
-          callback(transfers);
-          keepProcessing = false;
-          break;
         }
       }
     }
