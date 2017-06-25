@@ -165,7 +165,7 @@ function readTransfers(lastTransactionTimeAsEpoch,
                                   console.log("MEMO LINKED POST PASSES" +
                                     " TESTS, will vote on");
                                 } else {
-                                  console.lgo("Memo linked post is too" +
+                                  console.log("Memo linked post is too" +
                                     " old to vote on, skipping");
                                 }
                               }
@@ -239,3 +239,5 @@ function getLastInfos(callback) {
     callback(lastTransactionTimeAsEpoch, lastTransactionNumber);
   });
 }
+
+const
