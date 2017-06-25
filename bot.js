@@ -12,7 +12,8 @@ const
   DB_RECORDS = "records";
 
 const
-  RECORDS_FETCH_LIMIT = 100;
+  RECORDS_FETCH_LIMIT = 100,
+  VOTE_POWER_1_PC = 100;
 
 var ObjectID = mongodb.ObjectID;
 var db;
@@ -36,17 +37,121 @@ function main() {
   steem.config.set('websocket','wss://steemd.steemit.com');
   getLastInfos(function (lastTransactionTimeAsEpoch, lastTransactionNumber) {
     readTransfers(lastTransactionTimeAsEpoch, lastTransactionTimeAsEpoch,
-        function (transactions) {
-          console.log("***FINISHED***");
-          if (transactions === undefined
-             || transactions === null) {
-            console.log("Error getting transactions");
-            console.log(err, transactions);
+        function (transfers) {
+          console.log("*** GOT TRANSFERS ***");
+          if (transfers === undefined
+             || transfers === null) {
+            console.log("Error getting transfers");
+            console.log(err, transfers);
           } else {
-            console.log("Got "+transactions.length+" transactions");
-            console.log(JSON.stringify(transactions));
+            console.log("Got "+transfers.length+" transfers");
+            console.log(JSON.stringify(transfers));
+            // process transactions
+            voteOnPosts(transfers, function (err) {
+              if (err) {
+                console.log("vote on posts had error: "+err);
+              } else {
+                console.log("*** FINISHED ***")
+              }
+            });
           }
         });
+  });
+}
+
+function voteOnPosts(transfers, callback) {
+  wait.launchFiber(function() {
+    // get steem global properties first, needed for SP calc
+    var properties = wait.for(steem_getSteemGlobaleProperties_wrapper);
+    // get Steem Power of bot account
+    var accounts = wait.for(steem_getAccounts_wrapper);
+    var account = accounts[0];
+    var botVotingPower = account.voting_power;
+    var steemPower = getSteemPowerFromVest(properties, account.vesting_shares);
+    console.log("Bot SP is "+steemPower);
+    // determine which voting power probability table to use
+    var probTable = null;
+    for (var i = 0 ; i < votePowerProb_levelSp.length ; i++) {
+      if (steemPower >= votePowerProb_levelSp[i]) {
+        probTable = votePowerProb_levelTables[i];
+      }
+    }
+    if (probTable === null) {
+      callback("Fatal error, probability table could not be determined," +
+        " cannot vote");
+      return;
+    }
+    console.log("prob table: "+JSON.stringify(probTable));
+    // process transfers, vote on posts
+    console.log("processing transfers...");
+    for (var i = 0 ; i < transfers.length ; i++) {
+      var transfer = transfers[i];
+      console.log(" - transfer "+i+": "+JSON.stringify(transfer));
+      // calc nearest whole number STEEM amount
+      var amountFloor = Math.floor(transfer.number_amount);
+      if (amountFloor > probTable[0].length) {
+        amountFloor = probTable.length;
+      }
+      console.log(" - - amountFloor: "+amountFloor);
+      // calculate power
+      var rnd = Math.random();
+      console.log(" - - rnd: "+rnd);
+      var cumulativeProb = 0;
+      var probPowerFactor = -1; //bad value to fail if not set
+      for (var j = 0 ; j < probTable[amountFloor].length ; j++) {
+        cumulativeProb += probTable[amountFloor][j];
+        if (rnd < cumulativeProb) {
+          console.log(" - - - hit table at position "+j);
+          // MATCH
+          probPowerFactor = j;
+          break;
+        }
+      }
+      // TODO : factor adjustments on power could be done here
+      var votePower = probPowerFactor;
+      console.log(" - - - vote power = "+votePower+" pc");
+      // now adjust to Steem scaling
+      votePower *= VOTE_POWER_1_PC;
+      // do vote (note that this does not need to be wrapped)
+      // TODO : allow this voting
+      /*
+      var upvoteResult = wait.for(steem.broadcast.vote,
+        process.env.POSTING_KEY_PRV,
+        process.env.STEEM_USER,
+        transfer.author,
+        transfer.permlink,
+        votePower);
+        */
+    }
+    callback(null);
+  });
+}
+
+/*
+ getSteemPowerFromVest(vest):
+ * converts vesting steem (from get user query) to Steem Power (as on Steemit.com website)
+ */
+function getSteemPowerFromVest(steemGlobalProperties, vest) {
+  try {
+    return steem.formatter.vestToSteem(
+      vest,
+      parseFloat(steemGlobalProperties.total_vesting_shares),
+      parseFloat(steemGlobalProperties.total_vesting_fund_steem)
+    );
+  } catch(err) {
+    return 0;
+  }
+}
+
+function steem_getSteemGlobaleProperties_wrapper(callback) {
+  steem.api.getDynamicGlobalProperties(function(err, properties) {
+    callback(err, properties);
+  });
+}
+
+function steem_getAccounts_wrapper(callback) {
+  steem.api.getAccounts([process.env.STEEM_USER], function(err, result) {
+    callback(err, result);
   });
 }
 
@@ -157,9 +262,11 @@ function readTransfers(lastTransactionTimeAsEpoch,
                                 var nowTime = moment(new Date());
                                 if (nowTime.isBefore(cashoutTime)) {
                                   // PASSES ALL TESTS
-                                  // add author and permlink to detail
+                                  // add author and permlink to detail,
+                                  //    and number amount
                                   opDetail.author = author;
                                   opDetail.permlink = permlink;
+                                  opDetail.number_amount = amount;
                                   // add to list
                                   transfers.push(opDetail);
                                   console.log("MEMO LINKED POST PASSES" +
@@ -240,4 +347,50 @@ function getLastInfos(callback) {
   });
 }
 
+
+// NOTE, these tables are the transpose of the originals
+
 const
+  votePowerProb_lv3 = [
+    // each item in array is 1% more power, starting at 1%
+    [0.5, .25, .125, .0625, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01], // 1 STEEM
+    [0.01, 0.5, .25, .125, .0625, 0.01, 0.01, 0.01, 0.01, 0.01], // 2 STEEM
+    [0.01, 0.01, 0.5, .25, .125, .0625, 0.01, 0.01, 0.01, 0.01], // 3 STEEM
+    [0.01, 0.01, 0.01, 0.5, .25, .125, .0625, 0.01, 0.01, 0.01], // 4 STEEM
+    [0.01, 0.01, 0.01, 0.01, 0.5, .25, .125, .0625, 0.01, 0.01], // 5 STEEM
+    [0.01, 0.01, 0.01, 0.01, 0.01, 0.5, .25, .125, .0625, 0.01], // 6 STEEM
+    [0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.5, .25, .125, .0625], // 7 STEEM
+    [0.01, 0.01, 0.01, 0.01, 0.01, 0.01, .0625, 0.5, .25, .125], // 8 STEEM
+    [0.01, 0.01, 0.01, 0.01, 0.01, 0.01, .0625, .125, 0.5, .25], // 9 STEEM
+    [0.01, 0.01, 0.01, 0.01, 0.01, 0.01, .0625, .125, .25, 0.5]  // 10 STEEM
+    // >10 STEEM use 10 STEEM values
+  ];
+
+const
+  votePowerProb_lv2 = [
+    // each item in array is 1% more power, starting at 1%
+    [.5, .25, .125, .0625, .0625], // 1 STEEM
+    [.0625, .5, .25, .125, .0625], // 2 STEEM
+    [.0625, .0625, .5, .25, .125], // 3 STEEM
+    [.0625, .0625, .125, .5, .25], // 4 STEEM
+    [.0625, .0625, .125, .25, .5]  // 5 STEEM
+  ];
+
+const
+  votePowerProb_lv1 = [
+    // each item in array is 1% more power, starting at 1%
+    [.75, .25], // 1 STEEM
+    [.25, .75]  // 2 STEEM
+  ];
+
+const
+  votePowerProb_levelSp = [
+    60000, 150000, 300000
+  ];
+
+const
+  votePowerProb_levelTables = [
+    votePowerProb_lv1,
+    votePowerProb_lv2,
+    votePowerProb_lv3
+  ];
