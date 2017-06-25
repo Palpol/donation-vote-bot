@@ -40,7 +40,7 @@ function main() {
         for (var r in result) {
           if (r !== undefined && r !== null && r.length > 1) {
             var transaction = r[1];
-            console.log(" - - transaction");
+            console.log(" - - transaction: "+JSON.stringify(transaction));
             for (var i = 0 ; i < transaction.op.length ; i += 2) {
               console.log(" - - - "+transaction.op[i]);
             }
