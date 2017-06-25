@@ -32,7 +32,12 @@ function main() {
   getLastTimeAsEpoch(function (lastTransactionTimeAsEpoch) {
     steem.api.getAccountHistory(process.env.STEEM_USER, 10, 10, function(err, result) {
       console.log("*** ACCOUNT HISTORY");
-      console.log(err, result);
+      if (err) {
+        console.log("error!");
+      } else {
+        console.log(JSON.stringify(result));
+      }
+      /*
       if (result !== undefined && result !== null && result.length > 0) {
         for (var r in result) {
           steem.api.getTransaction(r[1].trx_id, function(err, result) {
@@ -45,6 +50,7 @@ function main() {
           });
         }
       }
+      */
     });
   });
 }
