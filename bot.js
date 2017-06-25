@@ -111,26 +111,29 @@ function readTransfers(lastTransactionTimeAsEpoch,
                         var parts = opDetail.memo.split("/");
                         if (parts.length > 0) {
                           var permlink = parts[parts.length - 1];
+                          var author = null;
                           for (var i = 0; i < parts.length; i++) {
                             if (S(parts[i]).startsWith("@")) {
-                              var author = parts[i].substr(1, parts[i].length);
-                              // check exists by fetching from Steem API
-                              var content = wait.for(steem.api.getContent, author, permlink);
-                              if (content == undefined || content === null) {
-                                console.log("Transfer memo does not" +
-                                  " contain valid post URL" +
-                                  " (failed at fetch author/permlink content from API): "
-                                  + opDetail.memo);
-                              } else {
-                                // TODO : something with content
-                                console.log("DEBUG get post content: " + JSON.stringify(result));
-                                // TODO : if passes, add to transfers
-                                transfers.push(opDetail);
-                              }
-                            } else {
-                              console.log("Transfer memo does not contain valid post URL (failed" +
-                                " to find user name at @ symbol): " + opDetail.memo);
+                              author = parts[i].substr(1, parts[i].length);
                             }
+                          }
+                          if (author !== null) {
+                            // check exists by fetching from Steem API
+                            var content = wait.for(steem.api.getContent, author, permlink);
+                            if (content == undefined || content === null) {
+                              console.log("Transfer memo does not" +
+                                " contain valid post URL" +
+                                " (failed at fetch author/permlink content from API): "
+                                + opDetail.memo);
+                            } else {
+                              // TODO : something with content
+                              console.log("DEBUG get post content: " + JSON.stringify(result));
+                              // TODO : if passes, add to transfers
+                              transfers.push(opDetail);
+                            }
+                          } else {
+                            console.log("Transfer memo does not contain valid post URL (failed" +
+                              " to find user name at @ symbol): " + opDetail.memo);
                           }
                         } else {
                           console.log("Transfer memo does not contain valid post URL (failed" +
