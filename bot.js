@@ -81,7 +81,7 @@ function readTransfers(lastTransactionTimeAsEpoch,
         keepProcessing = false;
         break;
       } else {
-        console.log(JSON.stringify(result));
+        //console.log(JSON.stringify(result));
         for (var j = 0 ; j < result.length ; j++) {
           var r = result[j];
           if (r[0] < transactionCounter) {
@@ -133,7 +133,7 @@ function readTransfers(lastTransactionTimeAsEpoch,
                                 + opDetail.memo);
                             } else {
                               // TODO : something with content
-                              console.log("DEBUG get post content: " + JSON.stringify(result));
+                              console.log("DEBUG get post content: " + JSON.stringify(content));
                               // TODO : if passes, add to transfers
                               transfers.push(opDetail);
                             }
