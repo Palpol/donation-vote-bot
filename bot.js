@@ -156,7 +156,11 @@ function readTransfers(lastTransactionTimeAsEpoch,
                                 cashoutTime.subtract(7, 'hours');
                                 var nowTime = moment(new Date());
                                 if (nowTime.isBefore(cashoutTime)) {
-                                  // PASSES ALL TESTS, add to list
+                                  // PASSES ALL TESTS
+                                  // add author and permlink to detail
+                                  opDetail.author = author;
+                                  opDetail.permlink = permlink;
+                                  // add to list
                                   transfers.push(opDetail);
                                   console.log("MEMO LINKED POST PASSES" +
                                     " TESTS, will vote on");
