@@ -36,7 +36,8 @@ function main() {
         console.log("error!");
       } else {
         console.log(JSON.stringify(result));
-        for (var r in result) {
+        for (var j = 0 ; j < result.length ; j++) {
+          var r = result[j];
           console.log(" - entry: "+JSON.stringify(r));
           if (r !== undefined && r !== null && r.length > 1) {
             var transaction = r[1];
