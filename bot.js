@@ -91,7 +91,7 @@ function readTransfers(lastTransactionTimeAsEpoch,
                   // verifyTransferIsValid
                   console.log(" - - - - detail: "+JSON.stringify(opDetail));
                   var amountParts = opDetail.amount.split(" ");
-                  if (amountParts === 2) {
+                  if (amountParts.length === 2) {
                     var amount = Number(amountParts[0]);
                     var asset = amountParts[1];
                     if (asset.localeCompare("STEEM") == 0) {
