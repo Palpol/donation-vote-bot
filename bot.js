@@ -37,6 +37,7 @@ function main() {
     readTransactions_recursive(lastTransactionTimeAsEpoch,
         lastTransactionTimeAsEpoch, 0, [],
         function (err, transactions) {
+          console.log("***FINISHED***");
           if (err || transactions === undefined
             || transactions === null) {
             console.log("Error getting transactions");
@@ -66,11 +67,8 @@ function readTransactions_recursive(lastTransactionTimeAsEpoch,
       console.log(JSON.stringify(result));
       for (var j = 0 ; j < result.length ; j++) {
         var r = result[j];
-        console.log(" - entry");
         if (r !== undefined && r !== null && r.length > 1) {
           var transaction = r[1];
-          //console.log(" - - transaction: "+JSON.stringify(transaction));
-          console.log(" - - transaction");
           processTransactionOp_recursive(transaction.op, 0, [], function (_transactions) {
             if (_transactions !== undefined
                 && _transactions !== null
@@ -96,8 +94,8 @@ function processTransactionOp_recursive(ops, idx, transactions, callback) {
     callback(transactions);
   }
   var opName = ops[idx];
-  console.log(" - - - "+opName);
-  if (opName.localeCompare("transaction") == 0) {
+  console.log(" - op: "+opName);
+  if (opName.localeCompare("transfer") == 0) {
     var opDetail = ops[idx+1];
     verifyTransferIsValid(opDetail, function (err) {
       if (err) {
