@@ -38,12 +38,15 @@ function main() {
         console.log(JSON.stringify(result));
         for (var j = 0 ; j < result.length ; j++) {
           var r = result[j];
-          console.log(" - entry: "+JSON.stringify(r));
+          //console.log(" - entry: "+JSON.stringify(r));
+          console.log(" - entry");
           if (r !== undefined && r !== null && r.length > 1) {
             var transaction = r[1];
-            console.log(" - - transaction: "+JSON.stringify(transaction));
+            //console.log(" - - transaction: "+JSON.stringify(transaction));
+            console.log(" - - transaction");
             for (var i = 0 ; i < transaction.op.length ; i += 2) {
               console.log(" - - - "+transaction.op[i]);
+              console.log(" - - - - detail: "+JSON.stringify(transaction.op[i+1]));
             }
           }
         }
