@@ -36,10 +36,10 @@ function main() {
   steem.api.setWebSocket('wss://steemd.steemit.com');
   getLastInfos(function (lastTransactionTimeAsEpoch, lastTransactionNumber) {
     readTransfers(lastTransactionTimeAsEpoch, lastTransactionTimeAsEpoch,
-        function (err, transactions) {
+        function (transactions) {
           console.log("***FINISHED***");
-          if (err || transactions === undefined
-            || transactions === null) {
+          if (transactions === undefined
+             || transactions === null) {
             console.log("Error getting transactions");
             console.log(err, transactions);
           } else {
@@ -61,8 +61,8 @@ function readTransfers(lastTransactionTimeAsEpoch,
       var result = wait.for(steem.api.getAccountHistory,
         process.env.STEEM_USER, idx + RECORDS_FETCH_LIMIT,
         RECORDS_FETCH_LIMIT);
-      if (err || result === undefined || result === null
-        || result.length < 1) {
+      if (result === undefined || result === null
+          || result.length < 1) {
         console.log("fatal error, cannot get account history" +
           " (transfers), may be finished normally, run out of data");
         callback(transfers);
@@ -139,7 +139,7 @@ function getLastInfos(callback) {
     if (err) {
       console.log(err);
       console.log("Error, exiting");
-      callback(0);
+      callback(0, 0);
       return;
     }
     var lastTransactionNumber = -1;
