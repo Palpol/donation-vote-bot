@@ -5,7 +5,8 @@ const
   path = require("path"),
   mongodb = require("mongodb"),
   moment = require('moment'),
-  S = require('string');
+  S = require('string'),
+  wait = require('wait.for');
 
 const
   DB_RECORDS = "records";
@@ -34,8 +35,7 @@ function main() {
   console.log("donation-vote-bot waking up");
   steem.api.setWebSocket('wss://steemd.steemit.com');
   getLastInfos(function (lastTransactionTimeAsEpoch, lastTransactionNumber) {
-    readTransactions_recursive(lastTransactionTimeAsEpoch,
-        lastTransactionTimeAsEpoch, 0, [],
+    readTransfers(lastTransactionTimeAsEpoch, lastTransactionTimeAsEpoch,
         function (err, transactions) {
           console.log("***FINISHED***");
           if (err || transactions === undefined
@@ -50,117 +50,88 @@ function main() {
   });
 }
 
-function readTransactions_recursive(lastTransactionTimeAsEpoch,
-                                    lastTransactionNumber,
-                                    idx,
-                                    transactions,
-                                    callback) {
-  steem.api.getAccountHistory(process.env.STEEM_USER, idx + RECORDS_FETCH_LIMIT,
-        RECORDS_FETCH_LIMIT, function(err, result) {
-    if (err || result === undefined || result === null
+function readTransfers(lastTransactionTimeAsEpoch,
+                          lastTransactionNumber,
+                          callback) {
+  wait.launchFiber(function() {
+    var transfers = [];
+    var keepProcessing = true;
+    var idx = 0;
+    while(keepProcessing) {
+      var result = wait.for(steem.api.getAccountHistory,
+        process.env.STEEM_USER, idx + RECORDS_FETCH_LIMIT,
+        RECORDS_FETCH_LIMIT);
+      if (err || result === undefined || result === null
         || result.length < 1) {
-      console.log("fatal error, cannot get account history" +
-        " (transactions)");
-      callback("fatal error, cannot get account history" +
-        " (transactions)", transactions);
-    } else {
-      console.log(JSON.stringify(result));
-      for (var j = 0 ; j < result.length ; j++) {
-        var r = result[j];
-        if (r !== undefined && r !== null && r.length > 1) {
-          var transaction = r[1];
-          processTransactionOp_recursive(transaction.op, 0, [], function (_transactions) {
-            if (_transactions !== undefined
-                && _transactions !== null
-                && _transactions.length > 0) {
-              for (var trx in _transactions) {
-                transactions.push(trx);
+        console.log("fatal error, cannot get account history" +
+          " (transfers), may be finished normally, run out of data");
+        callback(transfers);
+        keepProcessing = false;
+        break;
+      } else {
+        console.log(JSON.stringify(result));
+        for (var j = 0 ; j < result.length ; j++) {
+          var r = result[j];
+          if (r !== undefined && r !== null && r.length > 1) {
+            var transaction = r[1];
+            if (ops === undefined || ops === null || ops.length < 2) {
+              console.log("processTransactionOp_recursive failed, back ops: "+JSON.stringify(ops));
+            } else {
+              for (var i = 0 ; i < transaction.op.length ; i += 2) {
+                var opName = ops[i];
+                //console.log(" - op: "+opName);
+                if (opName.localeCompare("transfer") == 0) {
+                  var opDetail = ops[i+1];
+                  // verifyTransferIsValid
+                  console.log(" - - - - detail: "+JSON.stringify(opDetail));
+                  // CHECK 1: only consider STEEM transfers, not SBD
+                  if (opDetail.asset.localeCompare("STEEM") == 0) {
+                    console.log(" - - - - MATCH, is for STEEM");
+                    if (opDetail.amount >= 1.0) {
+                      console.log(" - - - - MATCH, amount >= 1.0");
+                      var parts = opDetail.memo.split("/");
+                      if (parts.length > 0) {
+                        var permlink = parts[parts.length - 1];
+                        for (var i = 0 ; i < parts.length ; i++) {
+                          if (S(parts[i]).startsWith("@")) {
+                            var author = parts[i].substr(1, parts[i].length);
+                            // check exists by fetching from Steem API
+                            var content = wait.for(steem.api.getContent, author, permlink);
+                            if (content == undefined || content === null) {
+                              console.log("Transfer memo does not" +
+                                " contain valid post URL" +
+                                " (failed at fetch author/permlink content from API): "
+                                + opDetail.memo);
+                            } else {
+                              // TODO : something with content
+                              console.log("DEBUG get post content: "+JSON.stringify(result));
+                              // TODO : if passes, add to transfers
+                              transfers.push(opDetail);
+                            }
+                          } else {
+                            console.log("Transfer memo does not contain valid post URL (failed" +
+                              " to find user name at @ symbol): "+opDetail.memo);
+                          }
+                        }
+                      } else {
+                        console.log("Transfer memo does not contain valid post URL (failed" +
+                          " at URL split by /): "+opDetail.memo);
+                      }
+                    } else {
+                      console.log("Transfer amount < 1.0 STEEM");
+                    }
+                  } else {
+                    console.log("Transfer is not for STEEM");
+                  }
+                }
               }
             }
-            // do recursion
             idx += RECORDS_FETCH_LIMIT;
-            readTransactions_recursive(lastTransactionTimeAsEpoch,
-                lastTransactionNumber, idx, transactions, callback);
-          });
+          }
         }
       }
     }
   });
-}
-
-function processTransactionOp_recursive(ops, idx, transactions, callback) {
-  if (ops === undefined || ops === null || ops.length < 2) {
-    console.log("processTransactionOp_recursive failed, back ops: "+JSON.stringify(ops));
-    callback(transactions);
-  }
-  var opName = ops[idx];
-  //console.log(" - op: "+opName);
-  if (opName.localeCompare("transfer") == 0) {
-    var opDetail = ops[idx+1];
-    verifyTransferIsValid(opDetail, function (err) {
-      if (err) {
-        console.log("verifyTransferIsValid failed: "+err);
-      } else {
-        console.log("verifyTransferIsValid pass! Adding to list");
-        transactions.push(opDetail);
-      }
-      idx += 2;
-      if (idx >= ops.length) {
-        callback(transactions);
-      } else {
-        processTransactionOp_recursive(ops, idx, transactions, callback);
-      }
-    });
-  } else {
-    idx += 2;
-    if (idx >= ops.length) {
-      callback(transactions);
-    } else {
-      processTransactionOp_recursive(ops, idx, transactions, callback);
-    }
-  }
-}
-
-
-function verifyTransferIsValid(opDetail, callback) {
-  console.log(" - - - - detail: "+JSON.stringify(opDetail));
-  // CHECK 1: only consider STEEM transactions, not SBD
-  if (opDetail.asset.localeCompare("STEEM") == 0) {
-    console.log(" - - - - MATCH, is for STEEM");
-    if (opDetail.amount >= 1.0) {
-      console.log(" - - - - MATCH, amount >= 1.0");
-      var parts = opDetail.memo.split("/");
-      if (parts.length > 0) {
-        var permlink = parts[parts.length - 1];
-        for (var i = 0 ; i < parts.length ; i++) {
-          if (S(parts[i]).startsWith("@")) {
-            var author = parts[i].substr(1, parts[i].length);
-            // check exists by fetching from Steem API
-            steem.api.getContent(author, permlink, function(err, result) {
-              if (err) {
-                callback("Transfer memo does not contain valid post URL" +
-                  " (failed at fetch author/permlink content from API): "
-                  + opDetail.memo);
-              } else {
-                console.log("DEBUG get post content: "+JSON.stringify(result));
-                callback(null);
-              }
-            });
-          } else {
-            callback("Transfer memo does not contain valid post URL (failed" +
-              " to find user name at @ symbol): "+opDetail.memo);
-          }
-        }
-      } else {
-        callback("Transfer memo does not contain valid post URL (failed" +
-          " at URL split by /): "+opDetail.memo);
-      }
-    } else {
-      callback("Transfer amount < 1.0 STEEM");
-    }
-  } else {
-    callback("Transfer is not for STEEM");
-  }
 }
 
 function getLastInfos(callback) {
