@@ -94,7 +94,7 @@ function processTransactionOp_recursive(ops, idx, transactions, callback) {
     callback(transactions);
   }
   var opName = ops[idx];
-  console.log(" - op: "+opName);
+  //console.log(" - op: "+opName);
   if (opName.localeCompare("transfer") == 0) {
     var opDetail = ops[idx+1];
     verifyTransferIsValid(opDetail, function (err) {
@@ -139,17 +139,21 @@ function verifyTransferIsValid(opDetail, callback) {
             steem.api.getContent(author, permlink, function(err, result) {
               if (err) {
                 callback("Transfer memo does not contain valid post URL" +
-                  " (failed at fetch author/permlink content from API)");
+                  " (failed at fetch author/permlink content from API): "
+                  + opDetail.memo);
               } else {
                 console.log("DEBUG get post content: "+JSON.stringify(result));
                 callback(null);
               }
             });
+          } else {
+            callback("Transfer memo does not contain valid post URL (failed" +
+              " to find user name at @ symbol): "+opDetail.memo);
           }
         }
       } else {
         callback("Transfer memo does not contain valid post URL (failed" +
-          " at URL split by /)");
+          " at URL split by /): "+opDetail.memo);
       }
     } else {
       callback("Transfer amount < 1.0 STEEM");
