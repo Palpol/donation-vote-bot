@@ -68,18 +68,14 @@ function voteOnPosts(transfers, callback) {
     var account = accounts[0];
     var botVotingPower = account.voting_power;
     var steemPower = getSteemPowerFromVest(properties, account.vesting_shares);
+    // TODO : make sure this takes delegated SP into account also
     console.log("Bot SP is "+steemPower);
     // determine which voting power probability table to use
-    var probTable = null;
+    var probTable = votePowerProb_levelSp[0]; //default to first table
     for (var i = 0 ; i < votePowerProb_levelSp.length ; i++) {
       if (steemPower >= votePowerProb_levelSp[i]) {
         probTable = votePowerProb_levelTables[i];
       }
-    }
-    if (probTable === null) {
-      callback("Fatal error, probability table could not be determined," +
-        " cannot vote");
-      return;
     }
     console.log("prob table: "+JSON.stringify(probTable));
     // process transfers, vote on posts
