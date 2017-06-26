@@ -110,7 +110,7 @@ function voteOnPosts(transfers, callback) {
       // now adjust to Steem scaling
       votePower *= VOTE_POWER_1_PC;
       // do vote (note that this does not need to be wrapped)
-      // TODO : allow this voting
+      // TODO : actually do voting
       /*
       var upvoteResult = wait.for(steem.broadcast.vote,
         process.env.POSTING_KEY_PRV,
@@ -119,6 +119,7 @@ function voteOnPosts(transfers, callback) {
         transfer.permlink,
         votePower);
         */
+      // TODO : comment on post
     }
     callback(null);
   });
@@ -216,6 +217,7 @@ function readTransfers(lastTransactionTimeAsEpoch,
                       console.log(" - - - - MATCH, is for STEEM");
                       if (amount >= 1.0) {
                         console.log(" - - - - MATCH, amount >= 1.0");
+                        // TODO : detect if comment and parse differently
                         var parts = opDetail.memo.split("/");
                         if (parts.length > 0) {
                           var permlink = parts[parts.length - 1];
