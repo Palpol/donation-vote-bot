@@ -18,6 +18,8 @@ const
 var ObjectID = mongodb.ObjectID;
 var db;
 
+var mLastInfos = null;
+
 
 // Connect to the database first
 mongodb.MongoClient.connect(process.env.MONGODB_URI, function (err, database) {
@@ -35,27 +37,26 @@ mongodb.MongoClient.connect(process.env.MONGODB_URI, function (err, database) {
 function main() {
   console.log("donation-vote-bot waking up");
   steem.config.set('websocket','wss://steemd.steemit.com');
-  getLastInfos(function (lastTransactionTimeAsEpoch, lastTransactionNumber) {
-    readTransfers(lastTransactionTimeAsEpoch, lastTransactionTimeAsEpoch,
-        function (transfers) {
-          console.log("*** GOT TRANSFERS ***");
-          if (transfers === undefined
-             || transfers === null) {
-            console.log("Error getting transfers");
-            console.log(err, transfers);
+  setupLastInfos(function () {
+    readTransfers(function (transfers) {
+      console.log("*** GOT TRANSFERS ***");
+      if (transfers === undefined
+         || transfers === null) {
+        console.log("Error getting transfers");
+        console.log(err, transfers);
+      } else {
+        console.log("Got "+transfers.length+" transfers");
+        console.log(JSON.stringify(transfers));
+        // process transactions
+        voteOnPosts(transfers, function (err) {
+          if (err) {
+            console.log("vote on posts had error: "+err);
           } else {
-            console.log("Got "+transfers.length+" transfers");
-            console.log(JSON.stringify(transfers));
-            // process transactions
-            voteOnPosts(transfers, function (err) {
-              if (err) {
-                console.log("vote on posts had error: "+err);
-              } else {
-                console.log("*** FINISHED ***")
-              }
-            });
+            console.log("*** FINISHED ***")
           }
         });
+      }
+    });
   });
 }
 
@@ -189,14 +190,12 @@ function steem_getContent_wrapper(author, permlink, callback) {
   });
 }
 
-function readTransfers(lastTransactionTimeAsEpoch,
-                          lastTransactionNumber,
-                          callback) {
+function readTransfers(callback) {
   wait.launchFiber(function() {
     var transfers = [];
     var keepProcessing = true;
-    var idx = 0;
-    var transactionCounter = 0;
+    var idx = mLastInfos.lastTransaction;
+    var transactionCounter = idx;
     while(keepProcessing) {
       var result = wait.for(steem_getAccountHistory_wrapper,
         idx + RECORDS_FETCH_LIMIT, RECORDS_FETCH_LIMIT);
@@ -220,6 +219,10 @@ function readTransfers(lastTransactionTimeAsEpoch,
             break;
           }
           transactionCounter = r[0];
+          if (transactionCounter < mLastInfos.lastTransaction) {
+            continue;
+          }
+          mLastInfos.lastTransaction = transactionCounter;
           if (r !== undefined && r !== null && r.length > 1) {
             var transaction = r[1];
             var ops = transaction.op;
@@ -326,7 +329,6 @@ function readTransfers(lastTransactionTimeAsEpoch,
                 }
               }
             }
-            idx += RECORDS_FETCH_LIMIT;
           } else {
             console.log("fatal error, cannot get account history" +
               " (transfers), may be finished normally, run out of data");
@@ -336,43 +338,33 @@ function readTransfers(lastTransactionTimeAsEpoch,
           }
         }
       }
+      idx += RECORDS_FETCH_LIMIT;
     }
+    // save / update last transaction
+    console.log("saving / updating last transaction number");
+    wait.for(db.collection(TWEETS_FOUND_COLLECTION).insertOne, mLastInfos);
   });
 }
 
-function getLastInfos(callback) {
+function setupLastInfos(callback) {
   db.collection(DB_RECORDS).find({}).toArray(function(err, data) {
-    if (err) {
-      console.log(err);
-      console.log("Error, exiting");
-      callback(0, 0);
-      return;
-    }
-    var lastTransactionNumber = -1;
-    var lastTransactionTimeAsEpoch = 0;
-    if (process.env.START_TIME_AS_EPOCH !== undefined
-      && process.env.START_TIME_AS_EPOCH !== null) {
-      try {
-        lastTransactionTimeAsEpoch = Number(process.env.START_TIME_AS_EPOCH);
-      } catch(err) {
-        console.log("Error converting env var START_TIME_AS_EPOCH to" +
-          " number");
-        lastTransactionTimeAsEpoch = 0;
+    if (err || data === null || data === undefined || data.length === 0) {
+      console.log("No last infos data in db, is first time run, set up" +
+        " with defaults");
+      if (process.env.START_FROM_TRX_NUM !== undefined
+        && process.env.START_FROM_TRX_NUM !== null) {
+        mLastInfos = {
+          lastTransaction: transactionCounter
+        };
+      } else {
+        mLastInfos = {
+          lastTransaction: 0
+        };
       }
+    } else {
+      mLastInfos = data[0];
     }
-    if (data === undefined || data === null) {
-      console.log("Db data does not exist, consider this a first time run");
-      try {
-        if (lastTransactionTimeAsEpoch < data[0].timeAsEpoch) {
-          lastTransactionTimeAsEpoch = data[0].timeAsEpoch;
-        }
-        lastTransactionNumber = data[0].trxNumber;
-      } catch(err) {
-        console.log(err);
-        console.log("not fatal, continuing");
-      }
-    }
-    callback(lastTransactionTimeAsEpoch, lastTransactionNumber);
+    callback();
   });
 }
 
