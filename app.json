@@ -7,6 +7,9 @@
   "env": {
     "STEEM_USER": "",
     "POSTING_KEY_PRV": "",
-    "START_TIME_AS_EPOCH": ""
+    "START_TIME_AS_EPOCH": "0",
+    "VOTING_ACTIVE": "true",
+    "COMMENTING_ACTIVE": "true",
+    "STEEM_POWER_OVERRIDE": "0"
   }
 }

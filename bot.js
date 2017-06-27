@@ -69,6 +69,15 @@ function voteOnPosts(transfers, callback) {
     var botVotingPower = account.voting_power;
     var steemPower = getSteemPowerFromVest(properties, account.vesting_shares);
     // TODO : make sure this takes delegated SP into account also
+    // override with override value if exists (greater than 0)
+    if (process.env.STEEM_POWER_OVERRIDE !== undefined
+      && process.env.STEEM_POWER_OVERRIDE !== null) {
+      var steemPowerOverride = Number(process.env.STEEM_POWER_OVERRIDE);
+      if (steemPowerOverride > 0) {
+        console.log("Overriding actual SP of "+steemPower+" with value "+steemPowerOverride);
+        steemPower = steemPowerOverride;
+      }
+    }
     console.log("Bot SP is "+steemPower);
     // determine which voting power probability table to use
     var probTable = votePowerProb_levelTables[0]; //default to first table
@@ -107,19 +116,34 @@ function voteOnPosts(transfers, callback) {
       // TODO : factor adjustments on power could be done here
       var votePower = probPowerFactor;
       console.log(" - - - vote power = "+votePower+" pc");
-      // now adjust to Steem scaling
-      votePower *= VOTE_POWER_1_PC;
       // do vote (note that this does not need to be wrapped)
-      // TODO : actually do voting
-      /*
-      var upvoteResult = wait.for(steem.broadcast.vote,
-        process.env.POSTING_KEY_PRV,
-        process.env.STEEM_USER,
-        transfer.author,
-        transfer.permlink,
-        votePower);
-        */
-      // TODO : comment on post
+      // actually do voting
+      if (process.env.VOTING_ACTIVE !== undefined
+          && process.env.VOTING_ACTIVE !== null
+          && process.env.VOTING_ACTIVE.localeCompare("true") == 0) {
+        var upvoteResult = wait.for(steem.broadcast.vote,
+          process.env.POSTING_KEY_PRV,
+          process.env.STEEM_USER,
+          transfer.author,
+          transfer.permlink,
+          (votePower * VOTE_POWER_1_PC)); // adjust pc to Steem scaling
+      }
+      // comment on post
+      if (process.env.COMMENTING_ACTIVE !== undefined
+        && process.env.COMMENTING_ACTIVE !== null
+        && process.env.COMMENTING_ACTIVE.localeCompare("true") == 0) {
+        var commentMsg = "Test comment, this post has been voted on by" +
+          " the Tree Planter test bot at "+votePower+"%";
+        var commentResult = wait.for(steem.broadcast.comment,
+            wprocess.env.POSTING_KEY_PRV,
+            transfer.author,
+            transfer.permlink,
+            process.env.STEEM_USER,
+            "tree-planter-comment",
+            "Tree planter comment",
+            commentMsg,
+            {});
+      }
     }
     callback(null);
   });
