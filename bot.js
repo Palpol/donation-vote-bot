@@ -351,7 +351,13 @@ function readTransfers(callback) {
     }
     // save / update last transaction
     console.log("saving / updating last transaction number");
-    wait.for(db.collection(DB_RECORDS).insertOne, mLastInfos);
+    wait.for(mongoInsertOne_wrapper, mLastInfos);
+  });
+}
+
+function mongoInsertOne_wrapper(obj, callback) {
+  db.collection(DB_RECORDS).insertOne(obj, function (err, data) {
+    callback(err, data);
   });
 }
 
