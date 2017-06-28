@@ -356,7 +356,7 @@ function readTransfers(callback) {
 }
 
 function mongoInsertOne_wrapper(obj, callback) {
-  db.collection(DB_RECORDS).insertOne(obj, function (err, data) {
+  db.collection(DB_RECORDS).save(obj, function (err, data) {
     callback(err, data);
   });
 }
