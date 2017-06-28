@@ -38,6 +38,7 @@ function main() {
   console.log("donation-vote-bot waking up");
   steem.config.set('websocket','wss://steemd.steemit.com');
   setupLastInfos(function () {
+    console.log("Got last infos from DB (or newly created: "+JSON.stringify(mLastInfos));
     readTransfers(function (transfers) {
       console.log("*** GOT TRANSFERS ***");
       if (transfers === undefined
