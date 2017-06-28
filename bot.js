@@ -217,7 +217,7 @@ function readTransfers(callback) {
         break;
       } else {
         //console.log(JSON.stringify(result));
-        for (var j = 0 ; j < result.length ; j++) {
+        for (var j = 0; j < result.length; j++) {
           var r = result[j];
           if (r[0] < transactionCounter) {
             // this means the API returned older results than we asked
@@ -236,15 +236,15 @@ function readTransfers(callback) {
             var transaction = r[1];
             var ops = transaction.op;
             if (ops === undefined || ops === null || ops.length < 2) {
-              console.log("processTransactionOp_recursive failed, back ops: "+JSON.stringify(ops));
+              console.log("processTransactionOp_recursive failed, back ops: " + JSON.stringify(ops));
             } else {
-              for (var i = 0 ; i < ops.length ; i += 2) {
+              for (var i = 0; i < ops.length; i += 2) {
                 var opName = ops[i];
                 //console.log(" - op: "+opName);
                 if (opName.localeCompare("transfer") == 0) {
-                  var opDetail = ops[i+1];
+                  var opDetail = ops[i + 1];
                   // verifyTransferIsValid
-                  console.log(" - - - - detail: "+JSON.stringify(opDetail));
+                  console.log(" - - - - detail: " + JSON.stringify(opDetail));
                   var amountParts = opDetail.amount.split(" ");
                   if (amountParts.length === 2) {
                     var amount = Number(amountParts[0]);
@@ -338,6 +338,7 @@ function readTransfers(callback) {
                 }
               }
             }
+            idx += RECORDS_FETCH_LIMIT;
           } else {
             console.log("fatal error, cannot get account history" +
               " (transfers), may be finished normally, run out of data");
@@ -347,7 +348,6 @@ function readTransfers(callback) {
           }
         }
       }
-      idx += RECORDS_FETCH_LIMIT;
     }
     // save / update last transaction
     console.log("saving / updating last transaction number");
