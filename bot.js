@@ -205,7 +205,7 @@ function readTransfers(callback) {
     var transfers = [];
     var keepProcessing = true;
     var idx = mLastInfos.lastTransaction;
-    var transactionCounter = idx;
+    var transactionCounter = 0;
     while(keepProcessing) {
       var result = wait.for(steem_getAccountHistory_wrapper,
         idx + RECORDS_FETCH_LIMIT, RECORDS_FETCH_LIMIT);
@@ -217,6 +217,7 @@ function readTransfers(callback) {
         keepProcessing = false;
         break;
       } else {
+        mLastInfos.lastTransaction += result.length;
         //console.log(JSON.stringify(result));
         for (var j = 0; j < result.length; j++) {
           var r = result[j];
@@ -228,11 +229,6 @@ function readTransfers(callback) {
             keepProcessing = false;
             break;
           }
-          transactionCounter = r[0];
-          if (transactionCounter < mLastInfos.lastTransaction) {
-            continue;
-          }
-          mLastInfos.lastTransaction = transactionCounter;
           if (r !== undefined && r !== null && r.length > 1) {
             var transaction = r[1];
             var ops = transaction.op;
