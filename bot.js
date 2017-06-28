@@ -362,7 +362,7 @@ function setupLastInfos(callback) {
       if (process.env.START_FROM_TRX_NUM !== undefined
         && process.env.START_FROM_TRX_NUM !== null) {
         mLastInfos = {
-          lastTransaction: transactionCounter
+          lastTransaction: Number(process.env.START_FROM_TRX_NUM)
         };
       } else {
         mLastInfos = {
