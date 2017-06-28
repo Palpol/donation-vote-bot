@@ -274,8 +274,8 @@ function readTransfers(callback) {
                                   " (failed at fetch author/permlink content from API): "
                                   + opDetail.memo);
                               } else {
-                                //console.log("DEBUG get post content: " +
-                                // JSON.stringify(content));
+                                console.log("DEBUG get post content: " +
+                                 JSON.stringify(content));
                                 var match = false;
                                 try {
                                   for (var k = 0; k < content.active_votes.length; k++) {
