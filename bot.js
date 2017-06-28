@@ -350,7 +350,7 @@ function readTransfers(callback) {
     }
     // save / update last transaction
     console.log("saving / updating last transaction number");
-    wait.for(db.collection(TWEETS_FOUND_COLLECTION).insertOne, mLastInfos);
+    wait.for(db.collection(DB_RECORDS).insertOne, mLastInfos);
   });
 }
 
