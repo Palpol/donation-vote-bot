@@ -122,12 +122,16 @@ function voteOnPosts(transfers, callback) {
       if (process.env.VOTING_ACTIVE !== undefined
           && process.env.VOTING_ACTIVE !== null
           && process.env.VOTING_ACTIVE.localeCompare("true") == 0) {
-        var upvoteResult = wait.for(steem.broadcast.vote,
+        console.log("Voting...");
+        var voteResult = wait.for(steem.broadcast.vote,
           process.env.POSTING_KEY_PRV,
           process.env.STEEM_USER,
           transfer.author,
           transfer.permlink,
           (votePower * VOTE_POWER_1_PC)); // adjust pc to Steem scaling
+        console.log("Vote result: "+JSON.stringify(voteResult));
+      } else {
+        console.log("NOT voting, disabled");
       }
       // comment on post
       if (process.env.COMMENTING_ACTIVE !== undefined
@@ -135,6 +139,7 @@ function voteOnPosts(transfers, callback) {
         && process.env.COMMENTING_ACTIVE.localeCompare("true") == 0) {
         var commentMsg = "Test comment, this post has been voted on by" +
           " the Tree Planter test bot at "+votePower+"%";
+        console.log("Commenting: "+commentMsg);
         var commentResult = wait.for(steem.broadcast.comment,
             wprocess.env.POSTING_KEY_PRV,
             transfer.author,
@@ -144,6 +149,9 @@ function voteOnPosts(transfers, callback) {
             "Tree planter comment",
             commentMsg,
             {});
+        console.log("Comment result: "+JSON.stringify(commentResult));
+      } else {
+        console.log("NOT commenting, disabled");
       }
     }
     callback(null);
