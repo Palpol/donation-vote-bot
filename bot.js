@@ -69,6 +69,7 @@ function voteOnPosts(transfers, callback) {
     var accounts = wait.for(steem_getAccounts_wrapper);
     var account = accounts[0];
     var botVotingPower = account.voting_power;
+    console.log("steem power in VESTS: "+account.vesting_shares);
     var steemPower = getSteemPowerFromVest(properties, account.vesting_shares);
     // TODO : make sure this takes delegated SP into account also
     // override with override value if exists (greater than 0)
