@@ -229,6 +229,7 @@ function readTransfers(callback) {
             keepProcessing = false;
             break;
           }
+          transactionCounter = r[0];
           if (r !== undefined && r !== null && r.length > 1) {
             var transaction = r[1];
             var ops = transaction.op;
