@@ -124,7 +124,7 @@ function voteOnPosts(transfers, callback) {
         if (rnd < cumulativeProb) {
           console.log(" - - - hit table at position "+j);
           // MATCH
-          probPowerFactor = j;
+          probPowerFactor = (j + 1);
           break;
         }
       }
