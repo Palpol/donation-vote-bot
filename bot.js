@@ -188,6 +188,12 @@ function steem_getAccounts_wrapper(callback) {
   });
 }
 
+function steem_getAccountCount_wrapper(callback) {
+  steem.api.getAccountCount(function(err, result) {
+    callback(err, result);
+  });
+}
+
 function steem_getAccountHistory_wrapper(start, limit, callback) {
   steem.api.getAccountHistory(process.env.STEEM_USER, start, limit, function (err, result) {
     callback(err, result);
@@ -202,13 +208,17 @@ function steem_getContent_wrapper(author, permlink, callback) {
 
 function readTransfers(callback) {
   wait.launchFiber(function() {
+    var accountCountResult = wait.for(steem_getAccountCount_wrapper);
+    var idx = accountCountResult.result;
+    var newestTransaction = 0;
+
     var transfers = [];
     var keepProcessing = true;
-    var idx = mLastInfos.lastTransaction;
-    var transactionCounter = 0;
     while(keepProcessing) {
+      console.log("getAccountHi")
       var result = wait.for(steem_getAccountHistory_wrapper,
-        idx + RECORDS_FETCH_LIMIT, RECORDS_FETCH_LIMIT);
+        idx, RECORDS_FETCH_LIMIT);
+      idx -= RECORDS_FETCH_LIMIT;
       if (result === undefined || result === null
           || result.length < 1) {
         console.log("fatal error, cannot get account history" +
@@ -219,24 +229,21 @@ function readTransfers(callback) {
       } else {
         //console.log("*** transaction fetch result at idx "+idx);
         //console.log(JSON.stringify(result));
+        var gotNewTransaction = false;
         for (var j = 0; j < result.length; j++) {
           var r = result[j];
-          if (r[0] < transactionCounter) {
+          if (r[0] <= mLastInfos.lastTransaction) {
             // this means the API returned older results than we asked
             // for, meaning there are no more recent transactions to get
-            console.log("API has no more results, ending fetch: trx id "+r[0]+" < "+transactionCounter);
-            callback(transfers);
-            keepProcessing = false;
-            break;
-          }
-          transactionCounter = r[0];
-          if (mLastInfos.lastTransaction > transactionCounter) {
-            console.log("trx id "+transactionCounter+" already" +
+            console.log("trx id "+r[0]+" already" +
               " processed, <= "+mLastInfos.lastTransaction);
             continue;
           }
-          console.log("Processing trx id: "+transactionCounter);
-          mLastInfos.lastTransaction = transactionCounter;
+          gotNewTransaction = true;
+          if (newestTransaction < r[0]) {
+            newestTransaction = r[0];
+          }
+          console.log("Processing trx id: "+r[0]);
           if (r !== undefined && r !== null && r.length > 1) {
             var transaction = r[1];
             var ops = transaction.op;
@@ -352,8 +359,15 @@ function readTransfers(callback) {
             break;
           }
         }
+        if (!gotNewTransaction) {
+          console.log("API has no more results, ending fetch: trx id "+r[0]+" < "+transactionCounter);
+          callback(transfers);
+          keepProcessing = false;
+          break;
+        }
       }
     }
+    mLastInfos.lastTransaction = newestTransaction;
     // save / update last transaction
     console.log("saving / updating last transaction number");
     wait.for(mongoInsertOne_wrapper, mLastInfos);
