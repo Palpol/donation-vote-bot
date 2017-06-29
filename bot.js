@@ -387,14 +387,19 @@ function readTransfers(callback) {
         }
       }
     }
-    mLastInfos.lastTransaction = newestTransaction;
-    // save / update last transaction
-    console.log("saving / updating last transaction number");
-    wait.for(mongoInsertOne_wrapper, mLastInfos);
+    if (newestTransaction > mLastInfos.lastTransaction) {
+      mLastInfos.lastTransaction = newestTransaction;
+      // save / update last transaction
+      console.log("saving / updating last transaction number");
+      wait.for(mongoSave_wrapper, mLastInfos);
+    } else {
+      console.log("do not need to update last transaction number," +
+        " nothing new");
+    }
   });
 }
 
-function mongoInsertOne_wrapper(obj, callback) {
+function mongoSave_wrapper(obj, callback) {
   db.collection(DB_RECORDS).save(obj, function (err, data) {
     callback(err, data);
   });
