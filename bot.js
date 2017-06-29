@@ -221,7 +221,7 @@ function steem_getContent_wrapper(author, permlink, callback) {
 
 function readTransfers(callback) {
   wait.launchFiber(function() {
-    var idx = mLastInfos.lastTransaction - RECORDS_FETCH_LIMIT;
+    var idx = mLastInfos.lastTransaction;
     if (idx < 0) {
       idx = 0;
     }
@@ -230,9 +230,10 @@ function readTransfers(callback) {
     var transfers = [];
     var keepProcessing = true;
     while(keepProcessing) {
-      console.log("getAccountHi")
-      var result = wait.for(steem_getAccountHistory_wrapper,
-        idx + RECORDS_FETCH_LIMIT, idx);
+      var from = idx + RECORDS_FETCH_LIMIT;
+      var limit = RECORDS_FETCH_LIMIT;
+      console.log("getAccountHistory: from "+from+", limit "+limit);
+      var result = wait.for(steem_getAccountHistory_wrapper, from, limit);
       idx += RECORDS_FETCH_LIMIT;
       if (result === undefined || result === null
           || result.length < 1) {
@@ -365,7 +366,7 @@ function readTransfers(callback) {
                 }
               }
             }
-            idx += RECORDS_FETCH_LIMIT;
+            //idx += RECORDS_FETCH_LIMIT;
           } else {
             console.log("fatal error, cannot get account history" +
               " (transfers), may be finished normally, run out of data");
