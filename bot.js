@@ -18,6 +18,8 @@ const
 var ObjectID = mongodb.ObjectID;
 var db;
 
+var mAccount = null;
+var mProperties = null;
 var mLastInfos = null;
 
 
@@ -37,6 +39,9 @@ mongodb.MongoClient.connect(process.env.MONGODB_URI, function (err, database) {
 function main() {
   console.log("donation-vote-bot waking up");
   steem.config.set('websocket','wss://steemd.steemit.com');
+  init(function () {
+
+  });
   setupLastInfos(function () {
     console.log("Got last infos from DB (or newly created: "+JSON.stringify(mLastInfos));
     readTransfers(function (transfers) {
@@ -61,16 +66,24 @@ function main() {
   });
 }
 
-function voteOnPosts(transfers, callback) {
+function init(callback) {
   wait.launchFiber(function() {
     // get steem global properties first, needed for SP calc
-    var properties = wait.for(steem_getSteemGlobaleProperties_wrapper);
+    mProperties = wait.for(steem_getSteemGlobaleProperties_wrapper);
+    console.log("global properties: "+JSON.stringify(mProperties));
     // get Steem Power of bot account
     var accounts = wait.for(steem_getAccounts_wrapper);
-    var account = accounts[0];
-    var botVotingPower = account.voting_power;
-    console.log("steem power in VESTS: "+account.vesting_shares);
-    var steemPower = getSteemPowerFromVest(properties, account.vesting_shares);
+    mAccount = accounts[0];
+    console.log("account: "+JSON.stringify(mAccount));
+    callback();
+  });
+}
+
+function voteOnPosts(transfers, callback) {
+  wait.launchFiber(function() {
+    var botVotingPower = mAccount.voting_power;
+    console.log("steem power in VESTS: "+mAccount.vesting_shares);
+    var steemPower = getSteemPowerFromVest(mAccount.vesting_shares);
     // TODO : make sure this takes delegated SP into account also
     // override with override value if exists (greater than 0)
     if (process.env.STEEM_POWER_OVERRIDE !== undefined
@@ -164,12 +177,12 @@ function voteOnPosts(transfers, callback) {
  getSteemPowerFromVest(vest):
  * converts vesting steem (from get user query) to Steem Power (as on Steemit.com website)
  */
-function getSteemPowerFromVest(steemGlobalProperties, vest) {
+function getSteemPowerFromVest(vest) {
   try {
     return steem.formatter.vestToSteem(
       vest,
-      parseFloat(steemGlobalProperties.total_vesting_shares),
-      parseFloat(steemGlobalProperties.total_vesting_fund_steem)
+      parseFloat(mProperties.total_vesting_shares),
+      parseFloat(mProperties.total_vesting_fund_steem)
     );
   } catch(err) {
     return 0;
