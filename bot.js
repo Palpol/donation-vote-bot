@@ -137,13 +137,19 @@ function voteOnPosts(transfers, callback) {
           && process.env.VOTING_ACTIVE !== null
           && process.env.VOTING_ACTIVE.localeCompare("true") == 0) {
         console.log("Voting...");
-        var voteResult = wait.for(steem.broadcast.vote,
-          process.env.POSTING_KEY_PRV,
-          process.env.STEEM_USER,
-          transfer.author,
-          transfer.permlink,
-          (votePower * VOTE_POWER_1_PC)); // adjust pc to Steem scaling
-        console.log("Vote result: "+JSON.stringify(voteResult));
+        try {
+          console.log("Note voting at 100 pc because of very small SP!");
+          var voteResult = wait.for(steem.broadcast.vote,
+            process.env.POSTING_KEY_PRV,
+            process.env.STEEM_USER,
+            transfer.author,
+            transfer.permlink,
+            //(votePower * VOTE_POWER_1_PC)); // adjust pc to Steem scaling
+            (100 * VOTE_POWER_1_PC)); // adjust pc to Steem scaling
+          console.log("Vote result: "+JSON.stringify(voteResult));
+        } catch(err) {
+          console.log("Error voting: "+JSON.stringify(err));
+        }
       } else {
         console.log("NOT voting, disabled");
       }
