@@ -217,7 +217,8 @@ function readTransfers(callback) {
         keepProcessing = false;
         break;
       } else {
-        //console.log(JSON.stringify(result));
+        console.log("*** transaction fetch result at idx "+idx);
+        console.log(JSON.stringify(result));
         for (var j = 0; j < result.length; j++) {
           var r = result[j];
           if (r[0] < transactionCounter) {
