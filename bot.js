@@ -217,7 +217,6 @@ function readTransfers(callback) {
         keepProcessing = false;
         break;
       } else {
-        mLastInfos.lastTransaction += result.length;
         //console.log(JSON.stringify(result));
         for (var j = 0; j < result.length; j++) {
           var r = result[j];
@@ -230,6 +229,10 @@ function readTransfers(callback) {
             break;
           }
           transactionCounter = r[0];
+          if (mLastInfos.lastTransaction > transactionCounter) {
+            continue;
+          }
+          mLastInfos.lastTransaction = transactionCounter;
           if (r !== undefined && r !== null && r.length > 1) {
             var transaction = r[1];
             var ops = transaction.op;
