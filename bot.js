@@ -225,6 +225,7 @@ function readTransfers(callback) {
     if (idx < 0) {
       idx = 0;
     }
+    var oldestTransaction = 1;
     var newestTransaction = 0;
 
     var transfers = [];
@@ -248,7 +249,8 @@ function readTransfers(callback) {
         var gotNewTransaction = false;
         for (var j = 0; j < result.length; j++) {
           var r = result[j];
-          if (r[0] <= mLastInfos.lastTransaction) {
+          if (r[0] <= mLastInfos.lastTransaction
+              || !(r[0] < oldestTransaction || r[0] > newestTransaction)) {
             // this means the API returned older results than we asked
             // for, meaning there are no more recent transactions to get
             console.log("trx id "+r[0]+" already" +
@@ -258,6 +260,9 @@ function readTransfers(callback) {
           gotNewTransaction = true;
           if (newestTransaction < r[0]) {
             newestTransaction = r[0];
+          }
+          if (oldestTransaction > r[0]) {
+            oldestTransaction = r[0];
           }
           console.log("Processing trx id: "+r[0]);
           if (r !== undefined && r !== null && r.length > 1) {
