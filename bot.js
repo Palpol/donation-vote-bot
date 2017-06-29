@@ -217,22 +217,25 @@ function readTransfers(callback) {
         keepProcessing = false;
         break;
       } else {
-        console.log("*** transaction fetch result at idx "+idx);
-        console.log(JSON.stringify(result));
+        //console.log("*** transaction fetch result at idx "+idx);
+        //console.log(JSON.stringify(result));
         for (var j = 0; j < result.length; j++) {
           var r = result[j];
           if (r[0] < transactionCounter) {
             // this means the API returned older results than we asked
             // for, meaning there are no more recent transactions to get
-            console.log("API has no more results, ending fetch");
+            console.log("API has no more results, ending fetch: trx id "+r[0]+" < "+transactionCounter);
             callback(transfers);
             keepProcessing = false;
             break;
           }
           transactionCounter = r[0];
           if (mLastInfos.lastTransaction > transactionCounter) {
+            console.log("trx id "+transactionCounter+" already" +
+              " processed, <= "+mLastInfos.lastTransaction);
             continue;
           }
+          console.log("Processing trx id: "+transactionCounter);
           mLastInfos.lastTransaction = transactionCounter;
           if (r !== undefined && r !== null && r.length > 1) {
             var transaction = r[1];
