@@ -161,7 +161,7 @@ function voteOnPosts(transfers, callback) {
           " the Tree Planter test bot at "+votePower+"%";
         console.log("Commenting: "+commentMsg);
         var commentResult = wait.for(steem.broadcast.comment,
-            wprocess.env.POSTING_KEY_PRV,
+            process.env.POSTING_KEY_PRV,
             transfer.author,
             transfer.permlink,
             process.env.STEEM_USER,
