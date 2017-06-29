@@ -221,8 +221,10 @@ function steem_getContent_wrapper(author, permlink, callback) {
 
 function readTransfers(callback) {
   wait.launchFiber(function() {
-    var accountCountResult = wait.for(steem_getAccountCount_wrapper);
-    var idx = accountCountResult.result;
+    var idx = mLastInfos.lastTransaction - RECORDS_FETCH_LIMIT;
+    if (idx < 0) {
+      idx = 0;
+    }
     var newestTransaction = 0;
 
     var transfers = [];
@@ -230,8 +232,8 @@ function readTransfers(callback) {
     while(keepProcessing) {
       console.log("getAccountHi")
       var result = wait.for(steem_getAccountHistory_wrapper,
-        idx, RECORDS_FETCH_LIMIT);
-      idx -= RECORDS_FETCH_LIMIT;
+        idx + RECORDS_FETCH_LIMIT, idx);
+      idx += RECORDS_FETCH_LIMIT;
       if (result === undefined || result === null
           || result.length < 1) {
         console.log("fatal error, cannot get account history" +
