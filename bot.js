@@ -40,28 +40,27 @@ function main() {
   console.log("donation-vote-bot waking up");
   steem.config.set('websocket','wss://steemd.steemit.com');
   init(function () {
-
-  });
-  setupLastInfos(function () {
-    console.log("Got last infos from DB (or newly created: "+JSON.stringify(mLastInfos));
-    readTransfers(function (transfers) {
-      console.log("*** GOT TRANSFERS ***");
-      if (transfers === undefined
-         || transfers === null) {
-        console.log("Error getting transfers");
-        console.log(err, transfers);
-      } else {
-        console.log("Got "+transfers.length+" transfers");
-        console.log(JSON.stringify(transfers));
-        // process transactions
-        voteOnPosts(transfers, function (err) {
-          if (err) {
-            console.log("vote on posts had error: "+err);
-          } else {
-            console.log("*** FINISHED ***")
-          }
-        });
-      }
+    setupLastInfos(function () {
+      console.log("Got last infos from DB (or newly created: "+JSON.stringify(mLastInfos));
+      readTransfers(function (transfers) {
+        console.log("*** GOT TRANSFERS ***");
+        if (transfers === undefined
+          || transfers === null) {
+          console.log("Error getting transfers");
+          console.log(err, transfers);
+        } else {
+          console.log("Got "+transfers.length+" transfers");
+          console.log(JSON.stringify(transfers));
+          // process transactions
+          voteOnPosts(transfers, function (err) {
+            if (err) {
+              console.log("vote on posts had error: "+err);
+            } else {
+              console.log("*** FINISHED ***")
+            }
+          });
+        }
+      });
     });
   });
 }
@@ -381,7 +380,7 @@ function readTransfers(callback) {
           }
         }
         if (!gotNewTransaction) {
-          console.log("API has no more results, ending fetch: trx id "+r[0]+" < "+transactionCounter);
+          console.log("API has no more results, ending fetch");
           callback(transfers);
           keepProcessing = false;
           break;
