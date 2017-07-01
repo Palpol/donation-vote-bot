@@ -21,6 +21,7 @@ var db;
 var mAccount = null;
 var mProperties = null;
 var mLastInfos = null;
+var mMessage = null;
 
 
 // Connect to the database first
@@ -40,26 +41,29 @@ function main() {
   console.log("donation-vote-bot waking up");
   steem.config.set('websocket','wss://steemd.steemit.com');
   init(function () {
-    setupLastInfos(function () {
-      console.log("Got last infos from DB (or newly created: "+JSON.stringify(mLastInfos));
-      readTransfers(function (transfers) {
-        console.log("*** GOT TRANSFERS ***");
-        if (transfers === undefined
-          || transfers === null) {
-          console.log("Error getting transfers");
-          console.log(err, transfers);
-        } else {
-          console.log("Got "+transfers.length+" transfers");
-          console.log(JSON.stringify(transfers));
-          // process transactions
-          voteOnPosts(transfers, function (err) {
-            if (err) {
-              console.log("vote on posts had error: "+err);
-            } else {
-              console.log("*** FINISHED ***")
-            }
-          });
-        }
+    loadFileToString("/message.txt", function (str) {
+      mMessage = str;
+      setupLastInfos(function () {
+        console.log("Got last infos from DB (or newly created: "+JSON.stringify(mLastInfos));
+        readTransfers(function (transfers) {
+          console.log("*** GOT TRANSFERS ***");
+          if (transfers === undefined
+            || transfers === null) {
+            console.log("Error getting transfers");
+            console.log(err, transfers);
+          } else {
+            console.log("Got "+transfers.length+" transfers");
+            console.log(JSON.stringify(transfers));
+            // process transactions
+            voteOnPosts(transfers, function (err) {
+              if (err) {
+                console.log("vote on posts had error: "+err);
+              } else {
+                console.log("*** FINISHED ***")
+              }
+            });
+          }
+        });
       });
     });
   });
@@ -131,8 +135,16 @@ function voteOnPosts(transfers, callback) {
       if (process.env.COMMENTING_ACTIVE !== undefined
         && process.env.COMMENTING_ACTIVE !== null
         && process.env.COMMENTING_ACTIVE.localeCompare("true") == 0) {
+        var spToTrees = steemPower / 300;
+        var commentMsg = util.format(mMessage,
+            percentage,
+            percentage,
+            spToTrees,
+            steemPower);
+        /*
         var commentMsg = "Test comment, this post has been voted on by" +
           " the Tree Planter test bot at "+votePower+"%";
+          */
         console.log("Commenting: "+commentMsg);
         var commentResult = wait.for(steem.broadcast.comment,
             process.env.POSTING_KEY_PRV,
@@ -404,5 +416,19 @@ function setupLastInfos(callback) {
       mLastInfos = data[0];
     }
     callback();
+  });
+}
+
+function loadFileToString(filename, callback) {
+  fs.readFile(path.join(__dirname, filename), {encoding: 'utf-8'}, function(err,data) {
+    var str = "";
+    if (err) {
+      console.log(err);
+    } else {
+      str = data;
+    }
+    if (callback) {
+      callback(str);
+    }
   });
 }
