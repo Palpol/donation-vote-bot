@@ -1,6 +1,7 @@
 'use strict';
 
 const
+  fs = require('fs'),
   steem = require("steem"),
   path = require("path"),
   mongodb = require("mongodb"),
@@ -132,7 +133,7 @@ function voteOnPosts(transfers, callback) {
         console.log("NOT voting, disabled");
       }
       // comment on post
-      var spToTrees = steemPower / 300;
+      var spToTrees = Math.floor(steemPower / 300);
       var commentMsg = util.format(mMessage,
         percentage,
         percentage,
