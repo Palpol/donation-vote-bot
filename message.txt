@@ -1,6 +1,6 @@
                      Congratulations!
                You just planted %d tree(s)
-             and this post is voted at %d %%
+             and this post is voted at %d%%
            Thanks a lot for your contribution.
            Let's save Abongphen Highland Forest
              in Cameroon together on Steemit!
@@ -11,14 +11,15 @@
                           able
                            to
                           plant
-                           %d
+                          %d
                           trees
                           daily
                           with
                            my
                          current
                      STEEM POWER (%d)
-   The more power I have the more trees I could plant
+                  The more power I have
+              the more trees I could plant.
        Visit the account of my mother Kedjom-Keku
     to see more what our Forest Friendly Family does
-check this out to get more about how I plant those trees
+check this out to get more about how I plant those trees.

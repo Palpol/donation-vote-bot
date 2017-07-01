@@ -141,6 +141,8 @@ function voteOnPosts(transfers, callback) {
         percentage,
         spToTrees,
         steemPower);
+      // wrap comment in code fixed space markdown tags, preserve spacing
+      commentMsg = "```" + commentMsg + "```";
       /*
        var commentMsg = "Test comment, this post has been voted on by" +
        " the Tree Planter test bot at "+votePower+"%";
