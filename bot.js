@@ -94,43 +94,17 @@ function voteOnPosts(transfers, callback) {
       }
     }
     console.log("Bot SP is "+steemPower);
-    // determine which voting power probability table to use
-    var probTable = votePowerProb_levelTables[0]; //default to first table
-    for (var i = 0 ; i < votePowerProb_levelSp.length ; i++) {
-      if (steemPower >= votePowerProb_levelSp[i]) {
-        probTable = votePowerProb_levelTables[i];
-      }
-    }
-    console.log("prob table: "+JSON.stringify(probTable));
     // process transfers, vote on posts
     console.log("processing transfers...");
     for (var i = 0 ; i < transfers.length ; i++) {
       var transfer = transfers[i];
       console.log(" - transfer "+i+": "+JSON.stringify(transfer));
       // calc nearest whole number STEEM amount
-      var idx = Math.floor(transfer.number_amount) - 1;
-      if (idx > (probTable[0].length - 1)) {
-        idx = (probTable.length - 1);
+      var percentage = Math.floor(transfer.number_amount);
+      if (percentage > 10) {
+        percentage = 10;
       }
-      console.log(" - - index (floored amount - 1, max table row len):" +
-        " "+idx);
-      // calculate power
-      var rnd = Math.random();
-      console.log(" - - rnd: "+rnd);
-      var cumulativeProb = 0;
-      var probPowerFactor = -1; //bad value to fail if not set
-      for (var j = 0 ; j < probTable[idx].length ; j++) {
-        cumulativeProb += probTable[idx][j];
-        if (rnd < cumulativeProb) {
-          console.log(" - - - hit table at position "+j);
-          // MATCH
-          probPowerFactor = (j + 1);
-          break;
-        }
-      }
-      // TODO : factor adjustments on power could be done here
-      var votePower = probPowerFactor;
-      console.log(" - - - vote power = "+votePower+" pc");
+      console.log(" - - - percentage = "+percentage+" pc");
       // do vote (note that this does not need to be wrapped)
       // actually do voting
       if (process.env.VOTING_ACTIVE !== undefined
@@ -432,51 +406,3 @@ function setupLastInfos(callback) {
     callback();
   });
 }
-
-
-// NOTE, these tables are the transpose of the originals
-
-const
-  votePowerProb_lv3 = [
-    // each item in array is 1% more power, starting at 1%
-    [0.5, .25, .125, .0625, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01], // 1 STEEM
-    [0.01, 0.5, .25, .125, .0625, 0.01, 0.01, 0.01, 0.01, 0.01], // 2 STEEM
-    [0.01, 0.01, 0.5, .25, .125, .0625, 0.01, 0.01, 0.01, 0.01], // 3 STEEM
-    [0.01, 0.01, 0.01, 0.5, .25, .125, .0625, 0.01, 0.01, 0.01], // 4 STEEM
-    [0.01, 0.01, 0.01, 0.01, 0.5, .25, .125, .0625, 0.01, 0.01], // 5 STEEM
-    [0.01, 0.01, 0.01, 0.01, 0.01, 0.5, .25, .125, .0625, 0.01], // 6 STEEM
-    [0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.5, .25, .125, .0625], // 7 STEEM
-    [0.01, 0.01, 0.01, 0.01, 0.01, 0.01, .0625, 0.5, .25, .125], // 8 STEEM
-    [0.01, 0.01, 0.01, 0.01, 0.01, 0.01, .0625, .125, 0.5, .25], // 9 STEEM
-    [0.01, 0.01, 0.01, 0.01, 0.01, 0.01, .0625, .125, .25, 0.5]  // 10 STEEM
-    // >10 STEEM use 10 STEEM values
-  ];
-
-const
-  votePowerProb_lv2 = [
-    // each item in array is 1% more power, starting at 1%
-    [.5, .25, .125, .0625, .0625], // 1 STEEM
-    [.0625, .5, .25, .125, .0625], // 2 STEEM
-    [.0625, .0625, .5, .25, .125], // 3 STEEM
-    [.0625, .0625, .125, .5, .25], // 4 STEEM
-    [.0625, .0625, .125, .25, .5]  // 5 STEEM
-  ];
-
-const
-  votePowerProb_lv1 = [
-    // each item in array is 1% more power, starting at 1%
-    [.75, .25], // 1 STEEM
-    [.25, .75]  // 2 STEEM
-  ];
-
-const
-  votePowerProb_levelSp = [
-    60000, 150000, 300000
-  ];
-
-const
-  votePowerProb_levelTables = [
-    votePowerProb_lv1,
-    votePowerProb_lv2,
-    votePowerProb_lv3
-  ];
