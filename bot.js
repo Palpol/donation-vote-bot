@@ -156,7 +156,7 @@ function voteOnPosts(transfers, callback) {
             transfer.author,
             transfer.permlink,
             process.env.STEEM_USER,
-            steem.formatter.commentPermlink(transfer.author, transfer.permlink),
+            steem.formatter.commentPermlink(transfer.author, transfer.permlink).toLowerCase(),
             "Tree planter comment",
             commentMsg,
             {});
