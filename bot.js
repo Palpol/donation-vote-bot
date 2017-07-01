@@ -156,7 +156,7 @@ function voteOnPosts(transfers, callback) {
             transfer.author,
             transfer.permlink,
             process.env.STEEM_USER,
-            "tree-planter-comment",
+            steem.formatter.commentPermlink(transfer.author, transfer.permlink),
             "Tree planter comment",
             commentMsg,
             {});
