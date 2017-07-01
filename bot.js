@@ -135,6 +135,7 @@ function voteOnPosts(transfers, callback) {
       }
       // comment on post
       var spToTrees = Math.floor(steemPower / 300);
+      console.log("message raw: "+mMessage);
       var commentMsg = sprintf(mMessage,
         percentage,
         percentage,
