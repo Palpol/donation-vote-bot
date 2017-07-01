@@ -132,20 +132,20 @@ function voteOnPosts(transfers, callback) {
         console.log("NOT voting, disabled");
       }
       // comment on post
+      var spToTrees = steemPower / 300;
+      var commentMsg = util.format(mMessage,
+        percentage,
+        percentage,
+        spToTrees,
+        steemPower);
+      /*
+       var commentMsg = "Test comment, this post has been voted on by" +
+       " the Tree Planter test bot at "+votePower+"%";
+       */
+      console.log("Commenting: "+commentMsg);
       if (process.env.COMMENTING_ACTIVE !== undefined
         && process.env.COMMENTING_ACTIVE !== null
         && process.env.COMMENTING_ACTIVE.localeCompare("true") == 0) {
-        var spToTrees = steemPower / 300;
-        var commentMsg = util.format(mMessage,
-            percentage,
-            percentage,
-            spToTrees,
-            steemPower);
-        /*
-        var commentMsg = "Test comment, this post has been voted on by" +
-          " the Tree Planter test bot at "+votePower+"%";
-          */
-        console.log("Commenting: "+commentMsg);
         var commentResult = wait.for(steem.broadcast.comment,
             process.env.POSTING_KEY_PRV,
             transfer.author,
