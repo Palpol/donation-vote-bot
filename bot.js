@@ -7,7 +7,8 @@ const
   mongodb = require("mongodb"),
   moment = require('moment'),
   S = require('string'),
-  wait = require('wait.for');
+  wait = require('wait.for'),
+  sprintf = require("sprintf-js").sprintf;
 
 const
   DB_RECORDS = "records";
@@ -134,7 +135,7 @@ function voteOnPosts(transfers, callback) {
       }
       // comment on post
       var spToTrees = Math.floor(steemPower / 300);
-      var commentMsg = util.format(mMessage,
+      var commentMsg = sprintf(mMessage,
         percentage,
         percentage,
         spToTrees,
