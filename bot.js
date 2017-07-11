@@ -156,39 +156,39 @@ function voteOnPosts(transfers, callback) {
       // do vote (note that this does not need to be wrapped)
       // actually do voting
       console.log("Voting...");
-      try {
-        // update account first
-        var accounts = wait.for(steem_getAccounts_wrapper);
-        mAccount = accounts[0];
-        var botVotingPower = mAccount.voting_power;
-        console.log("bot voting power: "+(botVotingPower/VOTE_POWER_1_PC));
-        if (botVotingPower >= (MIN_VOTING_POWER * VOTE_POWER_1_PC)) {
-          if (process.env.VOTING_ACTIVE !== undefined
-            && process.env.VOTING_ACTIVE !== null
-            && process.env.VOTING_ACTIVE.localeCompare("true") == 0) {
+      // update account first
+      var accounts = wait.for(steem_getAccounts_wrapper);
+      mAccount = accounts[0];
+      var botVotingPower = mAccount.voting_power;
+      console.log("bot voting power: "+(botVotingPower/VOTE_POWER_1_PC));
+      if (botVotingPower >= (MIN_VOTING_POWER * VOTE_POWER_1_PC)) {
+        if (process.env.VOTING_ACTIVE !== undefined
+          && process.env.VOTING_ACTIVE !== null
+          && process.env.VOTING_ACTIVE.localeCompare("true") == 0) {
+          try {
             var voteResult = wait.for(steem.broadcast.vote,
               process.env.POSTING_KEY_PRV,
               process.env.STEEM_USER,
               transfer.author,
               transfer.permlink,
               (percentage * VOTE_POWER_1_PC)); // adjust pc to Steem scaling
-            console.log("Vote result: "+JSON.stringify(voteResult));
+            console.log("Vote result: " + JSON.stringify(voteResult));
             didVote = true;
-          } else {
-            console.log("NOT voting, disabled");
-            didVote = true; // TODO : remove, for debug only
+          } catch(err) {
+            console.log("Error voting: "+JSON.stringify(err));
           }
         } else {
-          var item = {
-            author: transfer.author,
-            permlink: transfer.permlink,
-            percentage: (votePower * VOTE_POWER_1_PC)
-          };
-          console.log("VP too small, putting in queue: "+JSON.stringify(item));
-          queue.push(item);
+          console.log("NOT voting, disabled");
+          didVote = true; // TODO : remove, for debug only
         }
-      } catch(err) {
-        console.log("Error voting: "+JSON.stringify(err));
+      } else {
+        var item = {
+          author: transfer.author,
+          permlink: transfer.permlink,
+          percentage: (votePower * VOTE_POWER_1_PC)
+        };
+        console.log("VP too small, putting in queue: "+JSON.stringify(item));
+        queue.push(item);
       }
       // comment on post
       var spToTrees = Math.floor(steemPower / 300);
