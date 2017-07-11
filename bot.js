@@ -358,8 +358,6 @@ function readTransfers(callback) {
                   var opDetail = ops[i + 1];
                   // verifyTransferIsValid
                   console.log(" - - - - detail: " + JSON.stringify(opDetail));
-                  if (opDetail.author !== null && opDetail.author !== undefined
-                      && opDetail.author.localeCompare(process.env.STEEM_USER) !== 0) {
                     var amountParts = opDetail.amount.split(" ");
                     if (amountParts.length === 2) {
                       var amount = Number(amountParts[0]);
@@ -381,53 +379,58 @@ function readTransfers(callback) {
                                 }
                               }
                               if (author !== null) {
-                                // check exists by fetching from Steem API
-                                var content = wait.for(steem_getContent_wrapper, author, permlink);
-                                if (content == undefined || content === null) {
-                                  console.log("Transfer memo does not" +
-                                    " contain valid post URL" +
-                                    " (failed at fetch author/permlink content from API): "
-                                    + opDetail.memo);
-                                } else {
-                                  console.log("DEBUG get post content: " +
-                                    JSON.stringify(content));
-                                  var match = false;
-                                  try {
-                                    for (var k = 0; k < content.active_votes.length; k++) {
-                                      if (content.active_votes[k].voter.localeCompare(process.env.STEEM_USER) == 0) {
-                                        match = true;
-                                        break;
+                                if (opDetail.author !== null && opDetail.author !== undefined
+                                  && opDetail.author.localeCompare(process.env.STEEM_USER) !== 0) {
+                                  // check exists by fetching from Steem API
+                                  var content = wait.for(steem_getContent_wrapper, author, permlink);
+                                  if (content == undefined || content === null) {
+                                    console.log("Transfer memo does not" +
+                                      " contain valid post URL" +
+                                      " (failed at fetch author/permlink content from API): "
+                                      + opDetail.memo);
+                                  } else {
+                                    console.log("DEBUG get post content: " +
+                                      JSON.stringify(content));
+                                    var match = false;
+                                    try {
+                                      for (var k = 0; k < content.active_votes.length; k++) {
+                                        if (content.active_votes[k].voter.localeCompare(process.env.STEEM_USER) == 0) {
+                                          match = true;
+                                          break;
+                                        }
+                                      }
+                                    } catch (err) {
+                                      console.log("Error analysing memo linked" +
+                                        " post for votes");
+                                    }
+                                    if (match) {
+                                      console.log("Already voted on this post," +
+                                        " skipping");
+                                    } else {
+                                      // check time since posted is < (7 days
+                                      // - 12 hrs)
+                                      var cashoutTime = moment(content.cashout_time);
+                                      cashoutTime.subtract(7, 'hours');
+                                      var nowTime = moment(new Date());
+                                      if (nowTime.isBefore(cashoutTime)) {
+                                        // PASSES ALL TESTS
+                                        // add author and permlink to detail,
+                                        //    and number amount
+                                        opDetail.author = author;
+                                        opDetail.permlink = permlink;
+                                        opDetail.number_amount = amount;
+                                        // add to list
+                                        transfers.push(opDetail);
+                                        console.log("MEMO LINKED POST PASSES" +
+                                          " TESTS, will vote on");
+                                      } else {
+                                        console.log("Memo linked post is too" +
+                                          " old to vote on, skipping");
                                       }
                                     }
-                                  } catch (err) {
-                                    console.log("Error analysing memo linked" +
-                                      " post for votes");
                                   }
-                                  if (match) {
-                                    console.log("Already voted on this post," +
-                                      " skipping");
-                                  } else {
-                                    // check time since posted is < (7 days
-                                    // - 12 hrs)
-                                    var cashoutTime = moment(content.cashout_time);
-                                    cashoutTime.subtract(7, 'hours');
-                                    var nowTime = moment(new Date());
-                                    if (nowTime.isBefore(cashoutTime)) {
-                                      // PASSES ALL TESTS
-                                      // add author and permlink to detail,
-                                      //    and number amount
-                                      opDetail.author = author;
-                                      opDetail.permlink = permlink;
-                                      opDetail.number_amount = amount;
-                                      // add to list
-                                      transfers.push(opDetail);
-                                      console.log("MEMO LINKED POST PASSES" +
-                                        " TESTS, will vote on");
-                                    } else {
-                                      console.log("Memo linked post is too" +
-                                        " old to vote on, skipping");
-                                    }
-                                  }
+                                } else {
+                                  console.log("Will not vote on own posts");
                                 }
                               } else {
                                 console.log("Transfer memo does not contain valid post URL (failed" +
@@ -450,9 +453,6 @@ function readTransfers(callback) {
                     } else {
                       console.log("Transfer amount field is invalid");
                     }
-                  } else {
-                    console.log("Will not vote on own posts");
-                  }
                 }
               }
             }
