@@ -191,8 +191,22 @@ function voteOnPosts(transfers, callback) {
         queue.push(item);
       }
       // comment on post
-      var spToTrees = Math.floor(steemPower / 300);
       console.log("message raw: "+mMessage);
+      // TODO : revert this after pre-launch phase
+      var commentMsg;
+      if (steemPower >= 7500) {
+        mMessage = "I am a tree planter getting ready to plant!"+
+        "\nYour post was upvoted with 10% of my voting power."+
+          "I have achieved %d SP and will start planting trees in" +
+          " Cameroon soon!.\n\nThanks a lot!";
+        commentMsg = sprintf(mMessage,
+          steemPower);
+      } else {
+        commentMsg = sprintf(mMessage,
+          (7500 - steemPower));
+      }
+      /*
+       var spToTrees = Math.floor(steemPower / 300);
       var commentMsg = sprintf(mMessage,
         percentage,
         percentage,
@@ -200,6 +214,7 @@ function voteOnPosts(transfers, callback) {
         steemPower);
       // wrap comment in code fixed space markdown tags, preserve spacing
       commentMsg = "```\n" + commentMsg + "\n```";
+      */
       /*
        var commentMsg = "Test comment, this post has been voted on by" +
        " the Tree Planter test bot at "+votePower+"%";
