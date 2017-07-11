@@ -17,7 +17,8 @@ const
 const
   RECORDS_FETCH_LIMIT = 100,
   VOTE_POWER_1_PC = 100,
-  MIN_VOTING_POWER = 80;
+  MIN_VOTING_POWER = 80,
+  MIN_STEEM_DONATION = 0.1;
 
 var ObjectID = mongodb.ObjectID;
 var db;
@@ -91,13 +92,22 @@ function voteOnPosts(transfers, callback) {
     console.log("steem power in VESTS: "+mAccount.vesting_shares);
     var steemPower = getSteemPowerFromVest(mAccount.vesting_shares);
     // TODO : make sure this takes delegated SP into account also
-    // override with override value if exists (greater than 0)
+    // override steem power with override value if exists (greater than 0)
     if (process.env.STEEM_POWER_OVERRIDE !== undefined
       && process.env.STEEM_POWER_OVERRIDE !== null) {
       var steemPowerOverride = Number(process.env.STEEM_POWER_OVERRIDE);
       if (steemPowerOverride > 0) {
         console.log("Overriding actual SP of "+steemPower+" with value "+steemPowerOverride);
         steemPower = steemPowerOverride;
+      }
+    }
+    // override vote power with override value if exists (greater than 0)
+    var votePowerOverride = 0;
+    if (process.env.VOTE_POWER_OVERRIDE !== undefined
+      && process.env.VOTE_POWER_OVERRIDE !== null) {
+      votePowerOverride = Number(process.env.VOTE_POWER_OVERRIDE);
+      if (votePowerOverride > 0) {
+        console.log("Overriding vote power to "+votePowerOverride);
       }
     }
     console.log("Bot SP is "+steemPower);
@@ -113,6 +123,10 @@ function voteOnPosts(transfers, callback) {
         percentage = 10;
       }
       console.log(" - - - percentage = "+percentage+" pc");
+      if (votePowerOverride > 0) {
+        console.log(" - - - - OVERRIDE percentage = "+votePowerOverride+" pc");
+        percentage = votePowerOverride;
+      }
       var didVote = false;
       // do vote (note that this does not need to be wrapped)
       // actually do voting
@@ -132,7 +146,7 @@ function voteOnPosts(transfers, callback) {
               process.env.STEEM_USER,
               transfer.author,
               transfer.permlink,
-              (votePower * VOTE_POWER_1_PC)); // adjust pc to Steem scaling
+              (percentage * VOTE_POWER_1_PC)); // adjust pc to Steem scaling
             console.log("Vote result: "+JSON.stringify(voteResult));
             didVote = true;
           } else {
@@ -306,7 +320,7 @@ function readTransfers(callback) {
                     var asset = amountParts[1];
                     if (asset.localeCompare("STEEM") == 0) {
                       console.log(" - - - - MATCH, is for STEEM");
-                      if (amount >= 1.0) {
+                      if (amount >= MIN_STEEM_DONATION) {
                         console.log(" - - - - MATCH, amount >= 1.0");
                         // do not allow comment, so screen for # hash
                         // symbol and reject if present

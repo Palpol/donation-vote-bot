@@ -10,6 +10,7 @@
     "START_FROM_TRX_NUM": "0",
     "VOTING_ACTIVE": "true",
     "COMMENTING_ACTIVE": "true",
-    "STEEM_POWER_OVERRIDE": "0"
+    "STEEM_POWER_OVERRIDE": "0",
+    "VOTE_POWER_OVERRIDE": "0"
   }
 }
