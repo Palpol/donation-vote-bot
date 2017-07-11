@@ -365,7 +365,7 @@ function readTransfers(callback) {
                       if (asset.localeCompare("STEEM") == 0) {
                         console.log(" - - - - MATCH, is for STEEM");
                         if (amount >= MIN_STEEM_DONATION) {
-                          console.log(" - - - - MATCH, amount >= 1.0");
+                          console.log(" - - - - MATCH, amount >= "+MIN_STEEM_DONATION);
                           // do not allow comment, so screen for # hash
                           // symbol and reject if present
                           if (opDetail.memo.indexOf("#") < 0) {
@@ -379,8 +379,8 @@ function readTransfers(callback) {
                                 }
                               }
                               if (author !== null) {
-                                if (opDetail.author !== null && opDetail.author !== undefined
-                                  && opDetail.author.localeCompare(process.env.STEEM_USER) !== 0) {
+                                if (author !== null && author !== undefined
+                                  && author.localeCompare(process.env.STEEM_USER) !== 0) {
                                   // check exists by fetching from Steem API
                                   var content = wait.for(steem_getContent_wrapper, author, permlink);
                                   if (content == undefined || content === null) {
