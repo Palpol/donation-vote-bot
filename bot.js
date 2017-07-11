@@ -116,6 +116,7 @@ function voteOnPosts(transfers, callback) {
     console.log("Bot SP is "+steemPower);
     console.log("Add transfers from queue if any");
     var queue = wait.for(mongo_getQueue_wrapper);
+    mongo_dropQueue_wrapper(); // remove it
     if (queue === undefined || queue === null) {
       console.log("Error getting queue, reseting");
     } else if (queue.length > 0) {
@@ -495,6 +496,10 @@ function mongo_getQueue_wrapper(callback) {
   db.collection(DB_QUEUE).find({}).toArray(function(err, data) {
     callback(err, data);
   });
+}
+
+function mongo_dropQueue_wrapper() {
+  db.collection(DB_QUEUE).drop();
 }
 
 function setupLastInfos(callback) {
