@@ -190,6 +190,7 @@ function voteOnPosts(transfers, callback) {
         var item = {
           author: transfer.author,
           permlink: transfer.permlink,
+          from: transfer.from,
           percentage: (percentage * VOTE_POWER_1_PC)
         };
         console.log("VP too small, putting in queue: "+JSON.stringify(item));
@@ -201,14 +202,16 @@ function voteOnPosts(transfers, callback) {
       var commentMsg;
       if (steemPower >= 7500) {
         mMessage = "I am a tree planter getting ready to plant!"+
-        "\nYour post was upvoted with 10%% of my voting power."+
+        "\nThanks to @%s your post was upvoted with 10% of my voting power."+
           "I have achieved %d SP and will start planting trees in" +
           " Cameroon soon!.\n\nThanks a lot!";
         commentMsg = sprintf(mMessage,
+          transfer.from,
           steemPower);
       } else {
         var sp = (7500 - steemPower);
         commentMsg = sprintf(mMessage,
+          transfer.from,
           sp);
       }
       /*
