@@ -353,9 +353,9 @@ function readTransfers(callback) {
             } else {
               for (var i = 0; i < ops.length; i += 2) {
                 var opName = ops[i];
+                var opDetail = ops[i + 1];
                 //console.log(" - op: "+opName);
-                if (opName.localeCompare("transfer") == 0) {
-                  var opDetail = ops[i + 1];
+                if (opDetail.author.localeCompare("transfer") == 0) {
                   // verifyTransferIsValid
                   console.log(" - - - - detail: " + JSON.stringify(opDetail));
                   if (opDetail.author.localeCompare(process.env.STEEM_USER) !== 0) {
