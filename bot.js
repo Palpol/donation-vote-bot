@@ -11,11 +11,13 @@ const
   sprintf = require("sprintf-js").sprintf;
 
 const
-  DB_RECORDS = "records";
+  DB_RECORDS = "records",
+  DB_QUEUE = "queue";
 
 const
   RECORDS_FETCH_LIMIT = 100,
-  VOTE_POWER_1_PC = 100;
+  VOTE_POWER_1_PC = 100,
+  MIN_VOTING_POWER = 80;
 
 var ObjectID = mongodb.ObjectID;
 var db;
@@ -85,8 +87,7 @@ function init(callback) {
 }
 
 function voteOnPosts(transfers, callback) {
-  wait.launchFiber(function() {
-    var botVotingPower = mAccount.voting_power;
+  wait.launchFiber(function () {
     console.log("steem power in VESTS: "+mAccount.vesting_shares);
     var steemPower = getSteemPowerFromVest(mAccount.vesting_shares);
     // TODO : make sure this takes delegated SP into account also
@@ -102,6 +103,7 @@ function voteOnPosts(transfers, callback) {
     console.log("Bot SP is "+steemPower);
     // process transfers, vote on posts
     console.log("processing transfers...");
+    var queue = [];
     for (var i = 0 ; i < transfers.length ; i++) {
       var transfer = transfers[i];
       console.log(" - transfer "+i+": "+JSON.stringify(transfer));
@@ -111,27 +113,43 @@ function voteOnPosts(transfers, callback) {
         percentage = 10;
       }
       console.log(" - - - percentage = "+percentage+" pc");
+      var didVote = false;
       // do vote (note that this does not need to be wrapped)
       // actually do voting
-      if (process.env.VOTING_ACTIVE !== undefined
-          && process.env.VOTING_ACTIVE !== null
-          && process.env.VOTING_ACTIVE.localeCompare("true") == 0) {
-        console.log("Voting...");
-        try {
-          console.log("Note voting at 100 pc because of very small SP!");
-          var voteResult = wait.for(steem.broadcast.vote,
-            process.env.POSTING_KEY_PRV,
-            process.env.STEEM_USER,
-            transfer.author,
-            transfer.permlink,
-            //(votePower * VOTE_POWER_1_PC)); // adjust pc to Steem scaling
-            (100 * VOTE_POWER_1_PC)); // adjust pc to Steem scaling
-          console.log("Vote result: "+JSON.stringify(voteResult));
-        } catch(err) {
-          console.log("Error voting: "+JSON.stringify(err));
+      console.log("Voting...");
+      try {
+        // update account first
+        var accounts = wait.for(steem_getAccounts_wrapper);
+        mAccount = accounts[0];
+        var botVotingPower = mAccount.voting_power;
+        console.log("bot voting power: "+(botVotingPower/VOTE_POWER_1_PC));
+        if (botVotingPower >= (MIN_VOTING_POWER * VOTE_POWER_1_PC)) {
+          if (process.env.VOTING_ACTIVE !== undefined
+            && process.env.VOTING_ACTIVE !== null
+            && process.env.VOTING_ACTIVE.localeCompare("true") == 0) {
+            var voteResult = wait.for(steem.broadcast.vote,
+              process.env.POSTING_KEY_PRV,
+              process.env.STEEM_USER,
+              transfer.author,
+              transfer.permlink,
+              (votePower * VOTE_POWER_1_PC)); // adjust pc to Steem scaling
+            console.log("Vote result: "+JSON.stringify(voteResult));
+            didVote = true;
+          } else {
+            console.log("NOT voting, disabled");
+            didVote = true; // TODO : remove, for debug only
+          }
+        } else {
+          var item = {
+            author: transfer.author,
+            permlink: transfer.permlink,
+            percentage: (votePower * VOTE_POWER_1_PC)
+          };
+          console.log("VP too small, putting in queue: "+JSON.stringify(item));
+          queue.push(item);
         }
-      } else {
-        console.log("NOT voting, disabled");
+      } catch(err) {
+        console.log("Error voting: "+JSON.stringify(err));
       }
       // comment on post
       var spToTrees = Math.floor(steemPower / 300);
@@ -148,7 +166,8 @@ function voteOnPosts(transfers, callback) {
        " the Tree Planter test bot at "+votePower+"%";
        */
       console.log("Commenting: "+commentMsg);
-      if (process.env.COMMENTING_ACTIVE !== undefined
+      if (didVote
+        && process.env.COMMENTING_ACTIVE !== undefined
         && process.env.COMMENTING_ACTIVE !== null
         && process.env.COMMENTING_ACTIVE.localeCompare("true") == 0) {
         var commentResult = wait.for(steem.broadcast.comment,
@@ -163,6 +182,13 @@ function voteOnPosts(transfers, callback) {
         console.log("Comment result: "+JSON.stringify(commentResult));
       } else {
         console.log("NOT commenting, disabled");
+      }
+    }
+    // put queue in memory
+    if (queue.length > 0) {
+      console.log("saving "+queue.length+" queued items to memory");
+      for (var i = 0 ; i < queue.length ; i++) {
+        wait.for(mongoSave_queue_wrapper, queue[i]);
       }
     }
     callback(null);
@@ -388,7 +414,7 @@ function readTransfers(callback) {
       mLastInfos.lastTransaction = newestTransaction;
       // save / update last transaction
       console.log("saving / updating last transaction number");
-      wait.for(mongoSave_wrapper, mLastInfos);
+      wait.for(mongoSave_records_wrapper, mLastInfos);
     } else {
       console.log("do not need to update last transaction number," +
         " nothing new");
@@ -396,8 +422,14 @@ function readTransfers(callback) {
   });
 }
 
-function mongoSave_wrapper(obj, callback) {
+function mongoSave_records_wrapper(obj, callback) {
   db.collection(DB_RECORDS).save(obj, function (err, data) {
+    callback(err, data);
+  });
+}
+
+function mongoSave_queue_wrapper(obj, callback) {
+  db.collection(DB_QUEUE).save(obj, function (err, data) {
     callback(err, data);
   });
 }
