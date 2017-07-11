@@ -177,6 +177,8 @@ function voteOnPosts(transfers, callback) {
               (percentage * VOTE_POWER_1_PC)); // adjust pc to Steem scaling
             console.log("Vote result: " + JSON.stringify(voteResult));
             didVote = true;
+            console.log("Waiting...");
+            wait.for(timeout_wrapper, 4000);
           } catch(err) {
             console.log("Error voting: "+JSON.stringify(err));
           }
@@ -541,4 +543,10 @@ function loadFileToString(filename, callback) {
       callback(str);
     }
   });
+}
+
+function timeout_wrapper(delay, callback) {
+  setTimeout(function() {
+    callback(null, true);
+  }, delay);
 }
