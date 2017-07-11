@@ -90,7 +90,8 @@ function init(callback) {
 function voteOnPosts(transfers, callback) {
   wait.launchFiber(function () {
     console.log("steem power in VESTS: "+mAccount.vesting_shares);
-    var steemPower = getSteemPowerFromVest(mAccount.vesting_shares);
+    var delegatedSteemPower = getSteemPowerFromVest(mAccount.received_vesting_shares);
+    var steemPower = getSteemPowerFromVest(mAccount.vesting_shares) + delegatedSteemPower;
     // TODO : make sure this takes delegated SP into account also
     // override steem power with override value if exists (greater than 0)
     if (process.env.STEEM_POWER_OVERRIDE !== undefined
