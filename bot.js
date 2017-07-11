@@ -185,7 +185,7 @@ function voteOnPosts(transfers, callback) {
         var item = {
           author: transfer.author,
           permlink: transfer.permlink,
-          percentage: (votePower * VOTE_POWER_1_PC)
+          percentage: (percentage * VOTE_POWER_1_PC)
         };
         console.log("VP too small, putting in queue: "+JSON.stringify(item));
         queue.push(item);
