@@ -202,7 +202,8 @@ function voteOnPosts(transfers, callback) {
       var commentMsg;
       if (steemPower >= 7500) {
         mMessage = "I am a tree planter getting ready to plant!"+
-        "\nThanks to @%s your post was upvoted with 10% of my voting power."+
+        "\nThanks to @%s your post was upvoted with 10%% of my voting" +
+          " power."+
           "I have achieved %d SP and will start planting trees in" +
           " Cameroon soon!.\n\nThanks a lot!";
         commentMsg = sprintf(mMessage,
