@@ -111,16 +111,40 @@ function voteOnPosts(transfers, callback) {
       }
     }
     console.log("Bot SP is "+steemPower);
+    console.log("Add transfers from queue if any");
+    var queue = wait.for(mongo_getQueue_wrapper);
+    if (queue === undefined || queue === null) {
+      console.log("Error getting queue, reseting");
+    } else if (queue.length > 0) {
+      console.log("Adding "+queue.length+" queued items");
+      var newTransfers = [];
+      for (var i = 0 ; i < queue.length ; i++) {
+        newTransfers.push(queue[i]);
+      }
+      for (var i = 0 ; i < transfers.length ; i++) {
+        newTransfers.push(transfers[i]);
+      }
+      transfers = newTransfers;
+    } else {
+      console.log("Nothing in queue");
+    }
+    queue = [];
     // process transfers, vote on posts
     console.log("processing transfers...");
-    var queue = [];
     for (var i = 0 ; i < transfers.length ; i++) {
       var transfer = transfers[i];
       console.log(" - transfer "+i+": "+JSON.stringify(transfer));
-      // calc nearest whole number STEEM amount
-      var percentage = Math.floor(transfer.number_amount);
-      if (percentage > 10) {
-        percentage = 10;
+      var percentage = 0;
+      if (transfer.number_amount !== undefined
+          && transfer.number_amount !== null) {
+        // calc nearest whole number STEEM amount
+        var percentage = Math.floor(transfer.number_amount);
+        if (percentage > 10) {
+          percentage = 10;
+        }
+      } else if (transfer.percentage !== undefined
+        && transfer.percentage !== null) {
+        percentage = transfer.percentage;
       }
       console.log(" - - - percentage = "+percentage+" pc");
       if (votePowerOverride > 0) {
@@ -444,6 +468,12 @@ function mongoSave_records_wrapper(obj, callback) {
 
 function mongoSave_queue_wrapper(obj, callback) {
   db.collection(DB_QUEUE).save(obj, function (err, data) {
+    callback(err, data);
+  });
+}
+
+function mongo_getQueue_wrapper(callback) {
+  db.collection(DB_QUEUE).find({}).toArray(function(err, data) {
     callback(err, data);
   });
 }
