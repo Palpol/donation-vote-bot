@@ -177,8 +177,9 @@ function voteOnPosts(transfers, callback) {
               (percentage * VOTE_POWER_1_PC)); // adjust pc to Steem scaling
             console.log("Vote result: " + JSON.stringify(voteResult));
             didVote = true;
-            console.log("Waiting...");
+            console.log("Waiting for vote time...");
             wait.for(timeout_wrapper, 4000);
+            console.log("Finished waiting");
           } catch(err) {
             console.log("Error voting: "+JSON.stringify(err));
           }
@@ -244,6 +245,9 @@ function voteOnPosts(transfers, callback) {
             commentMsg,
             {});
         console.log("Comment result: "+JSON.stringify(commentResult));
+        console.log("Waiting for comment timeout...");
+        wait.for(timeout_wrapper, 20000);
+        console.log("Finished waiting");
       } else {
         console.log("NOT commenting, disabled");
       }
