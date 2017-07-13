@@ -207,6 +207,16 @@ function voteOnPosts(transfers, callback) {
         steemPower);
       // wrap comment in code fixed space markdown tags, preserve spacing
       commentMsg = "```\n" + commentMsg + "\n```";
+      // check for self vote and add message if is
+      if (transfer.author.localeCompare(transfer.from) === 0) {
+        commentMsg = sprintf("You have just self/voted yourself using" +
+            " @treeplanter. Make other people happy and vote for others" +
+            " instead! Connect the steemit network, make the value. Be" +
+            " nice and share!\nAnyway you have still planted %d" +
+          " tree(s)...\n\n",
+            percentage)
+          + commentMsg;
+      }
       console.log("Commenting: "+commentMsg);
       if (didVote
         && process.env.COMMENTING_ACTIVE !== undefined
