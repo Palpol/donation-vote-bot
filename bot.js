@@ -380,8 +380,8 @@ function readTransfers(callback) {
                     if (amountParts.length === 2) {
                       var amount = Number(amountParts[0]);
                       var asset = amountParts[1];
-                      if (asset.localeCompare("STEEM") == 0) {
-                        console.log(" - - - - MATCH, is for STEEM");
+                      //if (asset.localeCompare("STEEM") == 0) {
+                        //console.log(" - - - - MATCH, is for STEEM");
                         if (amount >= MIN_STEEM_DONATION) {
                           console.log(" - - - - MATCH, amount >= "+MIN_STEEM_DONATION);
                           // do not allow comment, so screen for # hash
@@ -465,9 +465,9 @@ function readTransfers(callback) {
                         } else {
                           console.log("Transfer amount < 1.0 STEEM");
                         }
-                      } else {
-                        console.log("Transfer is not for STEEM");
-                      }
+                      //} else {
+                      //  console.log("Transfer is not for STEEM");
+                      //}
                     } else {
                       console.log("Transfer amount field is invalid");
                     }
