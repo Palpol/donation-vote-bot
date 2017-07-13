@@ -216,6 +216,14 @@ function voteOnPosts(transfers, callback) {
           transfer.from,
           sp);
       }
+      // check for self vote and add message if is
+      if (transfer.author.localeCompare(transfer.from) === 0) {
+        commentMsg = sprintf("You have just self/voted yourself using" +
+            " @treeplanter. Make other people happy and vote for others" +
+            " instead!\n\n",
+            percentage)
+          + commentMsg;
+      }
       /*
        var spToTrees = Math.floor(steemPower / 300);
       var commentMsg = sprintf(mMessage,
