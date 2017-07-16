@@ -427,8 +427,10 @@ function readTransfers(callback) {
               || !(r[0] < oldestTransaction || r[0] > newestTransaction)) {
             // this means the API returned older results than we asked
             // for, meaning there are no more recent transactions to get
+            /*
             console.log("trx id "+r[0]+" already" +
               " processed, <= "+mLastInfos.lastTransaction);
+              */
             continue;
           }
           gotNewTransaction = true;
