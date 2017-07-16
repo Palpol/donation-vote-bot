@@ -133,7 +133,7 @@ function do_conversion(latestBlockMoment, target_value, isSteem, callback) {
     var totalVests = vestingSharesNum + receivedSharesNum;
     console.log(" - - total vests: " + totalVests);
 
-    var steempower = lib.getSteemPowerFromVest(totalVests);
+    var steempower = getSteemPowerFromVest(totalVests);
     console.log("steem power: " + steempower);
     var sp_scaled_vests = steempower / steem_per_vest;
     console.log("sp_scaled_vests: " + sp_scaled_vests);
