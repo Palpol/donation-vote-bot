@@ -115,7 +115,7 @@ function init_conversion(callback) {
 }
 
 
-function do_conversion(latestBlockMoment, target_value, isSteem, callback) {
+function do_conversion(latestBlockMoment, target_value, callback) {
   wait.launchFiber(function () {
     console.log("--DEBUG CALC VOTE PERCENTAGE--");
     var vp = recalcVotingPower(latestBlockMoment);
@@ -141,7 +141,7 @@ function do_conversion(latestBlockMoment, target_value, isSteem, callback) {
     var voteweight = 100;
 
     var oneval = (target_value * 52) / (sp_scaled_vests * 100
-      * conversionInfo.reward_pool); //* conversionInfo.sbd_per_steem
+      * conversionInfo.reward_pool * conversionInfo.sbd_per_steem);
     console.log("oneval: " + oneval);
 
     var votingpower = (oneval / (100 * (100 * voteweight) / VOTE_POWER_1_PC)) * 100;
@@ -239,7 +239,7 @@ function voteOnPosts(transfers, callback) {
         if (donation > MAX_DONATION) {
           donation = MAX_DONATION;
         }
-        percentage = wait.for(do_conversion, latestBlockMoment, donation * 1.5, transfer.is_steem);
+        percentage = wait.for(do_conversion, latestBlockMoment, donation * 1.5);
       } else if (transfer.percentage !== undefined
         && transfer.percentage !== null) {
         percentage = transfer.percentage;
