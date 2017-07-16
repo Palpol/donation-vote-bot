@@ -21,13 +21,13 @@ const
   MIN_DONATION = 0.1,
   MAX_DONATION = 0.5;
 
-var ObjectID = mongodb.ObjectID;
 var db;
 
 var mAccount = null;
 var mProperties = null;
 var mLastInfos = null;
 var mMessage = null;
+var latestBlockMoment = null;
 
 
 // Connect to the database first
@@ -94,6 +94,9 @@ var conversionInfo = {};
 
 function init_conversion(callback) {
   wait.launchFiber(function () {
+    // get some info first
+    var headBlock = wait.for(steem_getBlockHeader_wrapper, mProperties.head_block_number);
+    latestBlockMoment = moment(headBlock.timestamp, moment.ISO_8601);
     conversionInfo.rewardfund_info = wait.for(steem_getRewardFund_wrapper, "post");
     conversionInfo.price_info = wait.for(steem_getCurrentMedianHistoryPrice_wrapper);
 
@@ -112,7 +115,7 @@ function init_conversion(callback) {
 }
 
 
-function do_conversion(target_value, isSteem, callback) {
+function do_conversion(latestBlockMoment, target_value, isSteem, callback) {
   wait.launchFiber(function () {
     console.log("--DEBUG CALC VOTE PERCENTAGE--");
     var vp = recalcVotingPower(latestBlockMoment);
@@ -151,6 +154,29 @@ function do_conversion(target_value, isSteem, callback) {
     console.log("voting percentage: " + votingpower);
     callback(null, votingpower);
   });
+}
+
+function recalcVotingPower(latestBlockMoment) {
+  // update account
+  var accounts = wait.for(steem_getAccounts_wrapper, process.env.STEEM_USER);
+  var account = accounts[0];
+  if (account === null || account === undefined) {
+    console.log("Could not get bot account detail");
+    return 0;
+  }
+  mAccount = accounts[0];
+  var vp = account.voting_power;
+  var lastVoteTime = moment(account.last_vote_time);
+  var secondsDiff = latestBlockMoment.seconds() - lastVoteTime.seconds();
+  if (secondsDiff > 0) {
+    var vpRegenerated = secondsDiff * 10000 / 86400 / 5;
+    vp += vpRegenerated;
+  }
+  if (vp > 10000) {
+    vp = 10000;
+  }
+  console.log(" - - new vp(corrected): "+vp);
+  return vp;
 }
 
 function voteOnPosts(transfers, callback) {
@@ -212,7 +238,7 @@ function voteOnPosts(transfers, callback) {
         if (donation > MAX_DONATION) {
           donation = MAX_DONATION;
         }
-        percentage = wait.for(do_conversion, donation * 1.5, transfer.is_steem);
+        percentage = wait.for(do_conversion, latestBlockMoment, donation * 1.5, transfer.is_steem);
       } else if (transfer.percentage !== undefined
         && transfer.percentage !== null) {
         percentage = transfer.percentage;
@@ -622,6 +648,12 @@ function steem_getRewardFund_wrapper(type, callback) {
 
 function steem_getCurrentMedianHistoryPrice_wrapper(callback) {
   steem.api.getCurrentMedianHistoryPrice(function(err, result) {
+    callback(err, result);
+  });
+}
+
+function steem_getBlockHeader_wrapper(blockNum, callback) {
+  steem.api.getBlockHeader(blockNum, function(err, result) {
     callback(err, result);
   });
 }
