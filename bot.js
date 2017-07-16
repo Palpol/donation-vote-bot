@@ -294,7 +294,7 @@ function voteOnPosts(transfers, callback) {
         queue.push(item);
       }
       // comment on post
-      console.log("message raw: "+mMessage);
+      //console.log("message raw: "+mMessage);
       var spToTrees = Math.floor(steemPower / 300);
       var commentMsg = sprintf(mMessage,
         (donation / 2),
@@ -314,7 +314,7 @@ function voteOnPosts(transfers, callback) {
             percentage)
           + commentMsg;
       }
-      console.log("Commenting: "+commentMsg);
+      //console.log("Commenting: "+commentMsg);
       if (didVote
         && process.env.COMMENTING_ACTIVE !== undefined
         && process.env.COMMENTING_ACTIVE !== null
