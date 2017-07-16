@@ -135,12 +135,13 @@ function do_conversion(latestBlockMoment, target_value, isSteem, callback) {
 
     var steempower = getSteemPowerFromVest(totalVests);
     console.log("steem power: " + steempower);
-    var sp_scaled_vests = steempower / steem_per_vest;
+    var sp_scaled_vests = steempower / conversionInfo.steem_per_vest;
     console.log("sp_scaled_vests: " + sp_scaled_vests);
 
     var voteweight = 100;
 
-    var oneval = (target_value * 52) / (sp_scaled_vests * 100 * reward_pool * (isSteem ? 1 : sbd_per_steem));
+    var oneval = (target_value * 52) / (sp_scaled_vests * 100
+      * conversionInfo.reward_pool * (isSteem ? 1 : conversionInfo.sbd_per_steem));
     console.log("oneval: " + oneval);
 
     var votingpower = (oneval / (100 * (100 * voteweight) / VOTE_POWER_1_PC)) * 100;
