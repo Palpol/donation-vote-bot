@@ -203,6 +203,7 @@ function voteOnPosts(transfers, callback) {
       var commentMsg = sprintf(mMessage,
         percentage,
         percentage,
+        transfer.from,
         spToTrees,
         steemPower);
       // wrap comment in code fixed space markdown tags, preserve spacing
