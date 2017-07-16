@@ -7,6 +7,7 @@
   "env": {
     "STEEM_USER": "",
     "POSTING_KEY_PRV": "",
+    "ACTIVE_KEY_PRV": "",
     "START_FROM_TRX_NUM": "0",
     "VOTING_ACTIVE": "true",
     "COMMENTING_ACTIVE": "true",

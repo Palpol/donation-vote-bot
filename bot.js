@@ -297,7 +297,7 @@ function voteOnPosts(transfers, callback) {
       console.log("message raw: "+mMessage);
       var spToTrees = Math.floor(steemPower / 300);
       var commentMsg = sprintf(mMessage,
-        percentage,
+        (donation / 2),
         percentage,
         transfer.from,
         spToTrees,
@@ -343,6 +343,7 @@ function voteOnPosts(transfers, callback) {
         wait.for(mongoSave_queue_wrapper, queue[i]);
       }
     }
+    // TODO : transfer half the donation to vesting, i.e. power up
     callback(null);
   });
 }
@@ -636,6 +637,13 @@ function steem_getCurrentMedianHistoryPrice_wrapper(callback) {
 
 function steem_getBlockHeader_wrapper(blockNum, callback) {
   steem.api.getBlockHeader(blockNum, function(err, result) {
+    callback(err, result);
+  });
+}
+
+function steem_transferToVesting_wrapper(amount, callback) {
+  steem.broadcast.transferToVesting(process.env.ACTIVE_KEY_PRV,
+    process.env.STEEM_USER, process.env.STEEM_USER, amount, function(err, result) {
     callback(err, result);
   });
 }
