@@ -1,6 +1,25 @@
-I am a tree planter getting ready to plant!
-Thanks to @%s your post was upvoted with 10%% of my voting power.
-I need just %d Steem Power to achieve 7,500 SP and
-start planting trees in Cameroon.
-
-Thanks a lot!
+                    Congratulations!
+               You just planted %d tree(s)
+             and this post is voted at %d%%
+             Thanks @%s for your donation.
+           Let's save Abongphen Highland Forest
+             in Cameroon together on Steemit!
+                    Help me to spread
+                     the blockchain
+                         world.
+                          I am
+                          able
+                           to
+                          plant
+                          %d
+                          trees
+                          daily
+                          with
+                           my
+                         current
+                     STEEM POWER (%d)
+                  The more power I have
+              the more trees I could plant.
+       Visit the account of my mother Kedjom-Keku
+    to see more what our Forest Friendly Family does
+check this out to get more about how I plant those trees.

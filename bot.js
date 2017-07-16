@@ -295,33 +295,7 @@ function voteOnPosts(transfers, callback) {
       }
       // comment on post
       console.log("message raw: "+mMessage);
-      // TODO : revert this after pre-launch phase
-      var commentMsg;
-      if (steemPower >= 7500) {
-        mMessage = "I am a tree planter getting ready to plant!"+
-        "\nThanks to @%s your post was upvoted with 10%% of my voting" +
-          " power."+
-          "I have achieved %d SP and will start planting trees in" +
-          " Cameroon soon!.\n\nThanks a lot!";
-        commentMsg = sprintf(mMessage,
-          transfer.from,
-          steemPower);
-      } else {
-        var sp = (7500 - steemPower);
-        commentMsg = sprintf(mMessage,
-          transfer.from,
-          sp);
-      }
-      // check for self vote and add message if is
-      if (transfer.author.localeCompare(transfer.from) === 0) {
-        commentMsg = sprintf("You have just self/voted yourself using" +
-            " @treeplanter. Make other people happy and vote for others" +
-            " instead!\n\n",
-            percentage)
-          + commentMsg;
-      }
-      /*
-       var spToTrees = Math.floor(steemPower / 300);
+      var spToTrees = Math.floor(steemPower / 300);
       var commentMsg = sprintf(mMessage,
         percentage,
         percentage,
@@ -330,11 +304,16 @@ function voteOnPosts(transfers, callback) {
         steemPower);
       // wrap comment in code fixed space markdown tags, preserve spacing
       commentMsg = "```\n" + commentMsg + "\n```";
-      */
-      /*
-       var commentMsg = "Test comment, this post has been voted on by" +
-       " the Tree Planter test bot at "+votePower+"%";
-       */
+      // check for self vote and add message if is
+      if (transfer.author.localeCompare(transfer.from) === 0) {
+        commentMsg = sprintf("You have just self/voted yourself using" +
+            " @treeplanter. Make other people happy and vote for others" +
+            " instead! Connect the steemit network, make the value. Be" +
+            " nice and share!\nAnyway you have still planted %d" +
+          " tree(s)...\n\n",
+            percentage)
+          + commentMsg;
+      }
       console.log("Commenting: "+commentMsg);
       if (didVote
         && process.env.COMMENTING_ACTIVE !== undefined
