@@ -141,7 +141,7 @@ function do_conversion(latestBlockMoment, target_value, isSteem, callback) {
     var voteweight = 100;
 
     var oneval = (target_value * 52) / (sp_scaled_vests * 100
-      * conversionInfo.reward_pool * (isSteem ? 1 : conversionInfo.sbd_per_steem));
+      * conversionInfo.reward_pool); //* conversionInfo.sbd_per_steem
     console.log("oneval: " + oneval);
 
     var votingpower = (oneval / (100 * (100 * voteweight) / VOTE_POWER_1_PC)) * 100;
