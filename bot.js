@@ -299,6 +299,8 @@ function voteOnPosts(transfers, callback) {
       var commentMsg = sprintf(mMessage,
         (donation / 2),
         percentage,
+        (donation / 2),
+        transfer.is_steem ? "STEEM" : "SBD",
         transfer.from,
         spToTrees,
         steemPower);
