@@ -115,8 +115,6 @@ function init_conversion(callback) {
 function do_conversion(target_value, isSteem, callback) {
   wait.launchFiber(function () {
     console.log("--DEBUG CALC VOTE PERCENTAGE--");
-    var abs_need_rshares = Math.abs(item.rshares);
-    console.log(" - abs_need_rshares: " + abs_need_rshares);
     var vp = recalcVotingPower(latestBlockMoment);
     console.log(" - vp: " + vp);
     console.log(" - abs_percentage calc");
