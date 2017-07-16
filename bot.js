@@ -214,7 +214,7 @@ function voteOnPosts(transfers, callback) {
         if (donation > MAX_DONATION) {
           donation = MAX_DONATION;
         }
-        percentage = wait.for(do_conversion, donation, transfer.is_steem);
+        percentage = wait.for(do_conversion, donation * 1.5, transfer.is_steem);
       } else if (transfer.percentage !== undefined
         && transfer.percentage !== null) {
         percentage = transfer.percentage;
