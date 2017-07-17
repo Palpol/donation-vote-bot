@@ -323,7 +323,7 @@ function voteOnPosts(transfers, callback) {
         commentMsg = sprintf("You have just self-voted yourself using" +
             " @treeplanter. Make other people happy and vote for others" +
             " instead! Connect the steemit network, make the value. Be" +
-            " nice and share!\nAnyway you have still planted %d" +
+            " nice and share!\nAnyway you have still planted %.2f" +
           " tree(s)...\n\n",
             treesPlanted)
           + commentMsg;
