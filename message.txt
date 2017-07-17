@@ -3,6 +3,7 @@
               and this post is voted at %.2f%%
                 to a value of %.2f %s
              Thanks @%s for your donation.
+         Donate the tree to someone - free upvote.
            Let's save Abongphen Highland Forest
              in Cameroon together on Steemit!
                     Help me to spread

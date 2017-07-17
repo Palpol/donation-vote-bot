@@ -299,8 +299,8 @@ function voteOnPosts(transfers, callback) {
       var commentMsg = sprintf(mMessage,
         (donation / 2),
         percentage,
-        (donation / 2),
-        transfer.is_steem ? "STEEM" : "SBD",
+        donation * 1.5,
+        "SBD",
         transfer.from,
         spToTrees,
         steemPower);
@@ -313,7 +313,7 @@ function voteOnPosts(transfers, callback) {
             " instead! Connect the steemit network, make the value. Be" +
             " nice and share!\nAnyway you have still planted %d" +
           " tree(s)...\n\n",
-            percentage)
+            (donation/2))
           + commentMsg;
       }
       //console.log("Commenting: "+commentMsg);
