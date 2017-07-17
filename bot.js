@@ -117,7 +117,7 @@ function init_conversion(callback) {
         conversionInfo.steem_to_dollar = 1;
       } else {
         var data = JSON.parse("{\"data\":"+body+"}");
-        conversionInfo.steem_to_dollar = data["data"]["price_usd"];
+        conversionInfo.steem_to_dollar = data["data"][0]["price_usd"];
         console.log("got price of steem: "+conversionInfo.steem_to_dollar);
       }
       callback();
