@@ -8,7 +8,8 @@ const
   moment = require('moment'),
   S = require('string'),
   wait = require('wait.for'),
-  sprintf = require("sprintf-js").sprintf;
+  sprintf = require("sprintf-js").sprintf,
+  request = require('request');
 
 const
   DB_RECORDS = "records",
@@ -110,7 +111,17 @@ function init_conversion(callback) {
 
     conversionInfo.steem_per_vest = mProperties.total_vesting_fund_steem.replace(" STEEM", "")
       / mProperties.total_vesting_shares.replace(" VESTS", "");
-    callback();
+    request('https://api.coinmarketcap.com/v1/ticker/steem/', function (err, response, body) {
+      if (err) {
+        console.log("error getting price of steem from coinmarketcap");
+        conversionInfo.steem_to_dollar = 1;
+      } else {
+        var data = JSON.parse("{\"data\":"+body+"}");
+        conversionInfo.steem_to_dollar = data["data"]["price_usd"];
+        console.log("got price of steem: "+conversionInfo.steem_to_dollar);
+      }
+      callback();
+    });
   });
 }
 
@@ -295,9 +306,10 @@ function voteOnPosts(transfers, callback) {
       }
       // comment on post
       //console.log("message raw: "+mMessage);
+      var treesPlanted = (donation / 2) * conversionInfo.steem_to_dollar;
       var spToTrees = Math.floor(steemPower / 300);
       var commentMsg = sprintf(mMessage,
-        (donation / 2),
+        treesPlanted,
         percentage,
         donation * 1.5,
         "SBD",
@@ -313,7 +325,7 @@ function voteOnPosts(transfers, callback) {
             " instead! Connect the steemit network, make the value. Be" +
             " nice and share!\nAnyway you have still planted %d" +
           " tree(s)...\n\n",
-            (donation/2))
+            treesPlanted)
           + commentMsg;
       }
       //console.log("Commenting: "+commentMsg);
