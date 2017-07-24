@@ -126,10 +126,9 @@ function init_conversion(callback) {
 }
 
 
-function do_conversion(latestBlockMoment, target_value, callback) {
+function do_conversion(vp, target_value, callback) {
   wait.launchFiber(function () {
     console.log("--DEBUG CALC VOTE PERCENTAGE--");
-    var vp = recalcVotingPower(latestBlockMoment);
     console.log(" - vp: " + vp);
     console.log(" - abs_percentage calc");
     console.log(" - - mAccount.vesting_shares: " + mAccount.vesting_shares);
@@ -240,6 +239,8 @@ function voteOnPosts(transfers, callback) {
     // process transfers, vote on posts
     console.log("processing transfers...");
     for (var i = 0 ; i < transfers.length ; i++) {
+      var botVotingPower = recalcVotingPower(latestBlockMoment);
+      console.log("bot voting power: "+(botVotingPower/VOTE_POWER_1_PC));
       var transfer = transfers[i];
       console.log(" - transfer "+i+": "+JSON.stringify(transfer));
       var percentage = 0.01;
@@ -250,7 +251,7 @@ function voteOnPosts(transfers, callback) {
         if (donation > MAX_DONATION) {
           donation = MAX_DONATION;
         }
-        percentage = wait.for(do_conversion, latestBlockMoment, donation * 1.5);
+        percentage = wait.for(do_conversion, botVotingPower, donation * 1.5);
       } else if (transfer.percentage !== undefined
         && transfer.percentage !== null) {
         percentage = transfer.percentage;
@@ -264,11 +265,6 @@ function voteOnPosts(transfers, callback) {
       // do vote (note that this does not need to be wrapped)
       // actually do voting
       console.log("Voting...");
-      // update account first
-      var accounts = wait.for(steem_getAccounts_wrapper);
-      mAccount = accounts[0];
-      var botVotingPower = mAccount.voting_power;
-      console.log("bot voting power: "+(botVotingPower/VOTE_POWER_1_PC));
       if (botVotingPower >= (MIN_VOTING_POWER * VOTE_POWER_1_PC)) {
         if (process.env.VOTING_ACTIVE !== undefined
           && process.env.VOTING_ACTIVE !== null
