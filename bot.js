@@ -299,7 +299,7 @@ function voteOnPosts(transfers, callback) {
           permlink: transfer.permlink,
           from: transfer.from,
           is_steem: transfer.is_steem,
-          percentage: parseInt(percentage * VOTE_POWER_1_PC)
+          number_amount: transfer.number_amount
         };
         console.log("VP too small, putting in queue: "+JSON.stringify(item));
         queue.push(item);
@@ -312,7 +312,7 @@ function voteOnPosts(transfers, callback) {
         treesPlanted,
         percentage,
         donation * 1.5,
-        "SBD",
+        "SBD"+(transfer.is_steem ? " (from STEEM)" : ""),
         transfer.from,
         spToTrees,
         steemPower);
@@ -474,6 +474,9 @@ function readTransfers(callback) {
                       var amount = Number(amountParts[0]);
                       var asset = amountParts[1];
                       var isSteem = asset.localeCompare("STEEM") === 0;
+                      if (isSteem) {
+                        amount *= conversionInfo.sbd_per_steem;
+                      }
                       if (amount >= MIN_DONATION) {
                         console.log(" - - - - MATCH, amount >= "+MIN_DONATION);
                         // do not allow comment, so screen for # hash
