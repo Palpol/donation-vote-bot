@@ -302,7 +302,7 @@ function voteOnPosts(transfers, callback) {
       }
       // comment on post
       //console.log("message raw: "+mMessage);
-      var treesPlanted = (transfer.number_amount / 2) * conversionInfo.steem_to_dollar;
+      var treesPlanted = (transfer.number_amount / 2) * (conversionInfo.steem_to_dollar / conversionInfo.sbd_per_steem);
       var spToTrees = Math.floor(steemPower / 300);
       var commentMsg = sprintf(mMessage,
         treesPlanted,
