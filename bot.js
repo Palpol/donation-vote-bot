@@ -108,6 +108,7 @@ function init_conversion(callback) {
 
     conversionInfo.sbd_per_steem = conversionInfo.price_info.base.replace(" SBD", "")
       / conversionInfo.price_info.quote.replace(" STEEM", "");
+    console.log("sbd_per_steem = "+conversionInfo.sbd_per_steem);
 
     conversionInfo.steem_per_vest = mProperties.total_vesting_fund_steem.replace(" STEEM", "")
       / mProperties.total_vesting_shares.replace(" VESTS", "");
