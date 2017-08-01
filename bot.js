@@ -46,7 +46,8 @@ mongodb.MongoClient.connect(process.env.MONGODB_URI, function (err, database) {
 
 function main() {
   console.log("donation-vote-bot waking up");
-  steem.config.set('websocket','wss://steemd.steemit.com');
+  //steem.config.set('websocket','wss://steemd.steemit.com');
+  steem.config.set('websocket','ws://rpc.steemliberator.com:8090');
   init(function () {
     loadFileToString("/message.txt", function (str) {
       mMessage = str;
